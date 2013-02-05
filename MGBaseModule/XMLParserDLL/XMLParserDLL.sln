@@ -1,0 +1,23 @@
+Microsoft Visual Studio Solution File, Format Version 10.00
+# Visual Studio 2008
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "XMLParserDLL", "XMLParserDLL.vcproj", "{69041B98-973F-4204-A1FB-DE42EC7D2484}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		DbgU|Win32 = DbgU|Win32
+		Debug|Win32 = Debug|Win32
+		Release|Win32 = Release|Win32
+		ReleaseU|Win32 = ReleaseU|Win32
+		RlsU|Win32 = RlsU|Win32
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{69041B98-973F-4204-A1FB-DE42EC7D2484}.DbgU|Win32.ActiveCfg = DbgU|Win32
+		{69041B98-973F-4204-A1FB-DE42EC7D2484}.Debug|Win32.ActiveCfg = Debug|Win32
+		{69041B98-973F-4204-A1FB-DE42EC7D2484}.Release|Win32.ActiveCfg = Release|Win32
+		{69041B98-973F-4204-A1FB-DE42EC7D2484}.ReleaseU|Win32.ActiveCfg = ReleaseU|Win32
+		{69041B98-973F-4204-A1FB-DE42EC7D2484}.RlsU|Win32.ActiveCfg = RlsU|Win32
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal

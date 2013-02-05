@@ -1,0 +1,17 @@
+1 将文件夹拷贝到安装目录
+2 运行 RUNME.bat 注册日志服务
+3 对程序“GpsxConsole.exe” 创建快捷方式到桌面
+4 修改配置文件“Mgcapturecfg.ini”
+[TS_Config]
+
+;配置当前服务器用于接收gps报文的网卡IP
+BindIp =192.168.10.41
+
+;用于接收gps报文的端口
+BindPort =110
+
+ [oracle]
+;oracle的SID
+SID=orcal		
+;oracle服务器的IP
+serverAddr=192.168.200.42

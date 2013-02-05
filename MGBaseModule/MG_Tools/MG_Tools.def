@@ -1,0 +1,6 @@
+; MG_Tools.def : 声明 DLL 的模块参数。
+
+LIBRARY      "MG_Tools"
+
+EXPORTS
+    ; 此处可以是显式导出
