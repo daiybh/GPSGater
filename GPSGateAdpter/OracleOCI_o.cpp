@@ -118,6 +118,13 @@ int COracleOCI_o::Init( char *user,char*pwd,char*serverName,BOOL bInsertAsNewVeh
 		nRet = conn.connect(serverName, user,pwd);
 	else
 		nRet = conn.connect(serverAddr,serverName,user,pwd);
+
+
+	CStringA s;
+	s.Format("nret=%d,usr=%s,pwd=%s,ser=%s\r\nerrMSG=%s",nRet,user,pwd,serverName,conn.getErrorMsg());
+	//	::MessageBoxA(NULL,s,"cap",MB_YESNO);
+	WriteLog(LOGNAME,logLevelError,CString(s));
+
 	if(nRet <1)
 	{
 		CStringA s;

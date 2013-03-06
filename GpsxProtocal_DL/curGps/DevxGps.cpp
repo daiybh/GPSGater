@@ -29,7 +29,10 @@ void Write_Log(const char *pLogContent)
 void buf2HexStr_devx(const char *pSrcbuf,char *pDestBuf,int nLen)
 {
 	if(pSrcbuf[0] =='*')
+	{
+		memcpy(pDestBuf,pSrcbuf,nLen);
 		return;
+	}
 	if( nLen> 1024/2)	nLen = 1024;
 	char *pPos = pDestBuf;
 	*pPos = '_';
@@ -429,7 +432,7 @@ long Protocal::startGPS(char *buf,int nlen)
 // 	m_pGps->wlog(strFilename,gpsData.pDatabuf,gpsData.nDataLen);
 	GPSClass *pCurGPSClass=NULL;
 	gpsData.pCurGPSClass =NULL;
-	if((nret = SynchronGPSData(&pCurGPSClass,buf,gpsData.nDataLen,gpsInfo) )<1) 
+	if((nret = SynchronGPSData(&pCurGPSClass,buf,gpsData.nDataLen,gpsInfo) )<0) 
 	{
 		Write_Log("startGPS-来自GPS报文队列的报文不符合报文的规范");		
 		buf2HexStr_devx(buf,strTmp,gpsData.nDataLen);
