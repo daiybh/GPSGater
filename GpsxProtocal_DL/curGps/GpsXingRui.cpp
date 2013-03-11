@@ -235,10 +235,16 @@ long GpsXingRui::mapTxtInfo2( char *buf ,GPSINFO &gpsInfo)
 		strcat(strTmp1,gpsInfo.Time);
 		strcpy(gpsInfo.Time,strTmp1);//YYMMDDHHMMSS
 		/**/
-		pdest = getStr_betweenComma(pdest,stemp);//DDMMYY//vehicle_status
-		if((stemp[3]&0x04)==0x04) gpsInfo.nWarnFlag |= WAR_OVERSPEED;
-		if((stemp[3]&0x10)==0x10) gpsInfo.nWarnFlag |= WAR_INZONE;
-		if((stemp[3]&0x80)==0x80) gpsInfo.nWarnFlag |= WAR_OUTZONE;
+		//pdest = getStr_betweenComma(pdest,stemp);//FFFFFBFF#//vehicle_status
+		strcpy(stemp,pdest);
+		stemp[8]=0;
+		DWORD dT;
+		sscanf(stemp,"%x",&dT);
+		dT &=0xFF;
+
+		if((dT&0x04)==0x00) gpsInfo.nWarnFlag |= WAR_OVERSPEED;
+		if((dT&0x10)==0x00) gpsInfo.nWarnFlag |= WAR_INZONE;
+		if((dT&0x80)==0x00) gpsInfo.nWarnFlag |= WAR_OUTZONE;
 
 	}
 	return 0;
