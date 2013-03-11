@@ -221,6 +221,7 @@ long GpsXingRui::mapTxtInfo2( char *buf ,GPSINFO &gpsInfo)
 			pdest = getStr_betweenComma(pdest,stemp);
 			pdest = getStr_betweenComma(pdest,stemp);
 			pdest = getStr_betweenComma(pdest,stemp);
+			return -1;
 		}
 		pdest = getStr_betweenComma(pdest,stemp);//DDMMYY
 
