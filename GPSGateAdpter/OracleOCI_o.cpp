@@ -45,7 +45,7 @@ char * changeTime(const char *pGPSTime,CTime &GpsTime)
 	//20120223075300
 	int nYear,nMonth,nDay,nHour,nMinute,nSecond;
 
-	if(pGPSTime[0]=='2' && pGPSTime[1]=='0' && pGPSTime[2]=='1')
+	if(pGPSTime[0]=='2' && pGPSTime[1]=='0' /*&& pGPSTime[2]=='1'*/)
 	{	
 		nYear	= CHAR_2_iNT(pGPSTime[0])*1000+CHAR_2_iNT(pGPSTime[1])*100+CHAR_2_iNT(pGPSTime[2])*10+CHAR_2_iNT(pGPSTime[3]);
 		nMonth	= CHAR_2_iNT(pGPSTime[4])*10+CHAR_2_iNT(pGPSTime[5]);
@@ -625,8 +625,11 @@ INT64 g_WriteData_Cnt =0;
 */
 int IsValidData(const GPSINFO *pGpsInfo)
 {
-	if(strlen(pGpsInfo->Time) <12)
-		return -1;
+	if(pGpsInfo->bValid)
+	{
+		if(strlen(pGpsInfo->Time) <12)
+			return -1;
+	}
 	if(pGpsInfo->COMMADDR[0]=='\0')
 		return -2;
 // 	if(pGpsInfo->Longitude[0]=='\0' || pGpsInfo->Latitude[0]=='\0')
@@ -697,10 +700,15 @@ int COracleOCI_o::WriteData( const GPSINFO *pGpsInfo )
 
 
 	CTime gpsTime;
-	char * str_GpsTime=changeTime(pGpsInfo->Time,gpsTime);
 	CTime time_Servers=CTime::GetCurrentTime();
 	CStringA str_time_Servers (time_Servers.Format(_T("%Y-%m-%d %H:%M:%S")));
 
+	//char * str_GpsTime=changeTime(pGpsInfo->Time,gpsTime);
+	CStringA str_GpsTime(str_time_Servers);
+	if(pGpsInfo->bValid)
+	{
+		str_GpsTime =CStringA(changeTime(pGpsInfo->Time,gpsTime));
+	}
 	//2 有车，数据无效  只更新vehicle中的时间		RET_INVALID
 	//3 有车，数据正常，一切正常						RET_NORMAL
 	//4 有车，数据正常，判定为漂移						RET_PIAOYI
@@ -763,8 +771,7 @@ int COracleOCI_o::WriteData( const GPSINFO *pGpsInfo )
 			strLog.Format(_T("data-gps_CallBack,msgID=%s,nRet=%d,%s"),pGpsInfo->CMDID,nRet,CString(pGpsInfo->CMDARGUS));
 			WriteLog(LOGNAME,logLevelInfo,strLog);
 			break;
-		}
-		
+		}		
 		else if(RET_NORMAL == judge_ret || RET_INVALID == judge_ret ||RET_PIAOYI == judge_ret)
 		{
 			//判断是否要创建新表了

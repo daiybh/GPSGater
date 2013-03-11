@@ -220,8 +220,7 @@ long GpsXingRui::mapTxtInfo2( char *buf ,GPSINFO &gpsInfo)
 			pdest = getStr_betweenComma(pdest,stemp);
 			pdest = getStr_betweenComma(pdest,stemp);
 			pdest = getStr_betweenComma(pdest,stemp);
-			pdest = getStr_betweenComma(pdest,stemp);
-			return -1;
+			pdest = getStr_betweenComma(pdest,stemp);			
 		}
 		pdest = getStr_betweenComma(pdest,stemp);//DDMMYY
 
@@ -360,7 +359,7 @@ long GpsXingRui::mapHexVInfo( char *pbuf,GPSINFO &gpsInfo )
 	long	nlen = 0;
 	long	i = 1;
 	char	strTmp[512]="";
-	unsigned char	buf[65]="";
+	//unsigned char	buf[65]="";
 
 	// 00000000000000011111111111111112222222222222223333333333333333444444444
 	// 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5
@@ -368,38 +367,41 @@ long GpsXingRui::mapHexVInfo( char *pbuf,GPSINFO &gpsInfo )
 	//验证数据有效性
 	//buf[21] bit1，1：A，0：V
 
-	memcpy(buf,pbuf,32);
-	int av = buf[21]&0x2;
-	if(av==0)
+	//memcpy(buf,pbuf,32);
+	//int av = buf[21]&0x2;
+	
+	gpsInfo.bValid = ((pbuf[0x15]&0x2)==0x2);
+	/*if(av==0)
 		return -2;
-
-	sprintf(strTmp,"%2.2x%2.2x%2.2x%2.2x%2.2x",buf[1],buf[2],buf[3],buf[4],buf[5]);//SIM NO
+/**/
+	sprintf(strTmp,"%2.2x%2.2x%2.2x%2.2x%2.2x",pbuf[1],pbuf[2],pbuf[3],pbuf[4],pbuf[5]);//SIM NO
 	strcpy(gpsInfo.COMMADDR,strTmp);
 
-	sprintf(strTmp,"20%2.2x%2.2x%2.2x%2.2x%2.2x%2.2x",buf[11],buf[10],buf[9],buf[6],buf[7],buf[8]);//YYYYMMDDHHMMSS
-	strcpy(gpsInfo.Time,strTmp);
+	
 
-	gpsInfo.bValid = ((buf[0x15]&0x2)==0x2);
 
 	if(gpsInfo.bValid)
 	{
-		sprintf(strTmp,"%2.2x%2.2x%2.2x%2.2x0000",buf[12],buf[13],buf[14],buf[15]);//Latitude
+		sprintf(strTmp,"20%2.2x%2.2x%2.2x%2.2x%2.2x%2.2x",pbuf[11]&0xFF,pbuf[10],pbuf[9],pbuf[6],pbuf[7],pbuf[8]);//YYYYMMDDHHMMSS
+		strcpy(gpsInfo.Time,strTmp);
+		sprintf(strTmp,"%2.2x%2.2x%2.2x%2.2x0000",pbuf[12],pbuf[13],pbuf[14],pbuf[15]);//Latitude
 		strcpy(gpsInfo.Latitude,strTmp);
-		convertTitude(gpsInfo.Latitude,(buf[21]&0x04)==0x04,false,true);
+		convertTitude(gpsInfo.Latitude,(pbuf[21]&0x04)==0x04,false,true);
 
-		sprintf(strTmp,"%2.2x%2.2x%2.2x%2.2x%2.2x0000",buf[17],buf[18],buf[19],buf[20],buf[21]&0xF0);//Longtitude
+		sprintf(strTmp,"%2.2x%2.2x%2.2x%2.2x%2.2x0000",pbuf[17],pbuf[18],pbuf[19],pbuf[20],pbuf[21]&0xF0);//Longtitude
 		strcpy(gpsInfo.Longitude,strTmp);
-		convertTitude(gpsInfo.Longitude,(buf[21]&0x08)==0x08,true,true);
+		convertTitude(gpsInfo.Longitude,(pbuf[21]&0x08)==0x08,true,true);
 
-		sprintf(strTmp,"%2.2x%2.2x%2.2x",buf[22],buf[23],buf[24]);//Speed+Head
+		sprintf(strTmp,"%2.2x%2.2x%2.2x",pbuf[22],pbuf[23],pbuf[24]);//Speed+Head
 		strncpy(gpsInfo.Speed,strTmp,3);//speed
 		strncpy(gpsInfo.Heading,&strTmp[3],3);//head
+
+		sprintf(strTmp,"%2.2x%2.2x%2.2x%2.2x",pbuf[0x19],pbuf[0x1a],pbuf[0x1b],pbuf[0x1c]);//Vehicle status
+		if((pbuf[0x1c]&0x04)!=0x04) gpsInfo.nWarnFlag |= WAR_OVERSPEED;
+		if((pbuf[0x1c]&0x10)!=0x10) gpsInfo.nWarnFlag |= WAR_INZONE;
+		if((pbuf[0x1c]&0x80)!=0x80) gpsInfo.nWarnFlag |= WAR_OUTZONE;
 	}
-	sprintf(strTmp,"%2.2x%2.2x%2.2x%2.2x",buf[0x19],buf[0x1a],buf[0x1b],buf[0x1c]);//Vehicle status
-	if((buf[0x1c]&0x04)!=0x04) gpsInfo.nWarnFlag |= WAR_OVERSPEED;
-	if((buf[0x1c]&0x10)!=0x10) gpsInfo.nWarnFlag |= WAR_INZONE;
-	if((buf[0x1c]&0x80)!=0x80) gpsInfo.nWarnFlag |= WAR_OUTZONE;
-	sprintf(gpsInfo.VERFYCODE,"%2.2x",buf[0x1f]);
+	sprintf(gpsInfo.VERFYCODE,"%2.2x",pbuf[0x1f]);
 
 	return 1;
 }
