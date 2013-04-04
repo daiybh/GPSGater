@@ -1,6 +1,7 @@
 #pragma once
 #include "GpsData.h"
 #include "OracleOCI_o.h"
+#include "TimeCount.h"
 class DataOpter
 {
 public:
@@ -19,4 +20,5 @@ public:
 
 private:
 	COracleOCI_o *m_pOracleOCI;
+	CTimeCount m_timeCount;
 };

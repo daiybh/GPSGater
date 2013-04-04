@@ -103,11 +103,11 @@ DWORD WINAPI threadGetGPSData(LPVOID lpParameter)
 	char *pCommandXMl  = pTempBuffer +1024+1024/2;//1024*3/2---1024*3
 	GPSClass *pGpsClass = NULL;
 
+
 	while (TRUE)
 	{
 		ZeroMemory(pTempBuffer,1024*3);
-
-		Gdev.startGPS(buf,nlen);
+		int nRet = Gdev.startGPS(buf,nlen);
 
 		//在这里获取处理命令来处理
 		ZeroMemory(gpsCommand,sizeof(GPSCommand));
@@ -115,6 +115,7 @@ DWORD WINAPI threadGetGPSData(LPVOID lpParameter)
 		gpsCommand->commandParameters	=	pCommandPara;
 		gpsCommand->pstrCommandXMl		=	pCommandXMl;
 		Gdev.Process_Command(gpsCommand,pGpsGateDataBuf);
+
 		Sleep(50);
 	}
 	
@@ -409,37 +410,85 @@ BOOL Protocal::writeDataBase( GPSINFO gpsInfo )
 long Protocal::startGPS(char *buf,int nlen)
 {
 	long nret = 0;
-	char strTmp[1024]="";
 	char strFilename[20]="";
-	GPSINFO gpsInfo;
 	GPSGATEDATA  gpsData;
 	
 	strcpy(strFilename,"Console");
 	memset(buf,0x00,nlen);
-	memset(&gpsInfo,0x00,sizeof(GPSINFO));
 	memset(&gpsData,0x00,sizeof(GPSGATEDATA));
 	
 	gpsData.pDatabuf = buf;	
-	if(!readGPS(gpsData)) 
+	int ntotalBufLen = 0;
+
+	if((ntotalBufLen = readGPS(gpsData)) <1) 
 	{
-		return 0;
+		return -500;
 	//	return returnStar(0,"",strFilename);
 	}
 	_time64((__time64_t*)g_pi64LastDataTime);
+	int nDataLen=0,iTimeCount=0;
+	char *pEndBuf = buf+ntotalBufLen;
 
+	char *pDataBuf =buf;
+	do{
+		pDataBuf = pDataBuf+nDataLen;
+		if(pDataBuf>=pEndBuf)
+			break;
+		gpsData.nDataLen =gpsData.nDataLen-nDataLen;
+		if(gpsData.nDataLen<1)
+			break;
+		doGpsData(pDataBuf,gpsData,nDataLen,iTimeCount);
+		iTimeCount++;
+	}while(1);
+	return 1;
+}
+int Protocal::doGpsData(char *buf,GPSGATEDATA gpsData,int &nDataLen,int iTimeCount)
+{
 // 	strcpy(buf,"*HQ,6120108162,V1,044541,A,2624.7708,N,10317.3470,E,0.00,354,270312,FFFFFBFF#");
 // 	sprintf(strTmp,"[GPS]→[Console]-nDataLen:%d",gpsData.nDataLen);
 // 	m_pGps->wlog(strFilename,gpsData.pDatabuf,gpsData.nDataLen);
+	//2461203243550703540304132504827200102438156e000123fffffbffff00c62461203243550704240304132504814400102438424e000079fffffbffff00c72461203243550704590304132504805800102438584e000136fffffbffff00c8
+	int nret=0;
+	GPSINFO gpsInfo;
+
+	char strTmp[1024]="";
+	memset(&gpsInfo,0x00,sizeof(GPSINFO));
+
 	GPSClass *pCurGPSClass=NULL;
 	gpsData.pCurGPSClass =NULL;
 	if((nret = SynchronGPSData(&pCurGPSClass,buf,gpsData.nDataLen,gpsInfo) )<0) 
 	{
-		Write_Log("startGPS-来自GPS报文队列的报文不符合报文的规范");		
-		buf2HexStr_devx(buf,strTmp,gpsData.nDataLen);
-		Write_Log(strTmp);
+		if(iTimeCount==0)
+		{
+			Write_Log("startGPS-来自GPS报文队列的报文不符合报文的规范");		
+			buf2HexStr_devx(buf,strTmp,gpsData.nDataLen);
+			Write_Log(strTmp);
+		}
 		return 2;
 	//	return returnStar(2,"startGPS-来自GPS报文队列的报文不符合报文的规范",strFilename);
 	}
+	//nret 就是实际使用数据长度
+	nDataLen = nret;
+	{
+		sprintf(strTmp,"recvgpsData,commandr=%s,valid=%d",gpsInfo.COMMADDR,gpsInfo.bValid);
+		char *pLogName = LOG_NAME;
+		if(gpsInfo.COMMADDR[0]!='\0')
+			pLogName = gpsInfo.COMMADDR;
+		Write_Log(pLogName,strTmp);		
+		buf2HexStr_devx(buf,strTmp,gpsData.nDataLen);
+		Write_Log(pLogName,strTmp);
+	}
+	/*
+	if(!gpsInfo.bValid)
+	{
+		char *pLogName = LOG_NAME;
+		if(gpsInfo.COMMADDR[0]!='\0')
+			pLogName = gpsInfo.COMMADDR;
+		Write_Log(pLogName,"startGPS-gpsInfo.bValid=false");		
+		buf2HexStr_devx(buf,strTmp,gpsData.nDataLen);
+		Write_Log(pLogName,strTmp);
+	}
+	/**/
 	gpsData.pCurGPSClass = pCurGPSClass;
 	//根据报文类型来决定下面的操作
 	if(gpsInfo.nMsgID == MSG_LOGIN)
@@ -460,9 +509,11 @@ long Protocal::startGPS(char *buf,int nlen)
 		int nRet = writeDataBase(gpsInfo);
 		if(nRet<1) 
 		{
-			sprintf(strTmp,"[Protocal]→[DB]-Fail to write DB.%d",nRet);
+			sprintf(strTmp,"[Protocal]→[DB]-Fail to write DB.ret=%d,commandr=%s",nRet,gpsInfo.COMMADDR);
 			//TODO: NEEDLOG
 			//		m_pGps->wlog(gpsInfo.COMMADDR,strTmp);	
+
+			Write_Log(strTmp);
 			Write_Log(gpsInfo.COMMADDR,strTmp);
 			buf2HexStr_devx(buf,strTmp,gpsData.nDataLen);
 			Write_Log(gpsInfo.COMMADDR,strTmp);

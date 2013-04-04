@@ -132,6 +132,7 @@ long GpsXingRui::mapTxtInfo2( char *buf ,GPSINFO &gpsInfo)
 	//根据信息类型来处理剩余字节
 	const char * pdest=NULL;
 	int nLen1  = 0;
+	int nRetLen = strlen(buf);
 	pdest = find_Comma(buf,nLen1);//找第一个 ,
 	if(pdest==NULL)
 	{
@@ -247,7 +248,7 @@ long GpsXingRui::mapTxtInfo2( char *buf ,GPSINFO &gpsInfo)
 		if((dT&0x80)==0x00) gpsInfo.nWarnFlag |= WAR_OUTZONE;
 
 	}
-	return 0;
+	return nRetLen;
 }
 
 /************************************
@@ -364,12 +365,13 @@ long GpsXingRui::mapHexVInfo( char *pbuf,GPSINFO &gpsInfo )
 	// 00000000000000011111111111111112222222222222223333333333333333444444444
 	// 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5
 	//2451103230790839471704122500295400102438754e000344fffffbffff0033
+	//2461203243620235000404132500116100102378131c000000fffffbffff006e	
+
 	//验证数据有效性
 	//buf[21] bit1，1：A，0：V
 
 	//memcpy(buf,pbuf,32);
 	//int av = buf[21]&0x2;
-	
 	gpsInfo.bValid = ((pbuf[0x15]&0x2)==0x2);
 	/*if(av==0)
 		return -2;
@@ -403,7 +405,7 @@ long GpsXingRui::mapHexVInfo( char *pbuf,GPSINFO &gpsInfo )
 	}
 	sprintf(gpsInfo.VERFYCODE,"%2.2x",pbuf[0x1f]&0xFF);
 
-	return 1;
+	return 32;
 }
 
 

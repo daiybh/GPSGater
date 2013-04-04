@@ -195,9 +195,20 @@ JUDGE_RET COracleOCI_o::judge_GPSData( const GPSINFO* pGpsInfo,const INT64 *iSim
 		return RET_GPS_ANSWER;
 	}
 	if(!pGpsInfo->bValid)
+	{
+		CString strLog;
+		strLog.Format("RET_INVALID %s pgsinfo-bvalid=false",pGpsInfo->COMMADDR);
+		OutputDebugString(strLog);
 		return RET_INVALID;
+	}
 	if(0==(int)doubleLatitude || 0== (int)doubleLongitude)
+	{
+
+		CString strLog;
+		strLog.Format("RET_INVALID %s 0==(int)doubleLatitude || 0== (int)doubleLongitude",pGpsInfo->COMMADDR);
+		OutputDebugString(strLog);
 		return RET_INVALID;
+	}
 	//判断这个车是否有报警信息
 	if(pGpsInfo->nWarnFlag>0)
 	{

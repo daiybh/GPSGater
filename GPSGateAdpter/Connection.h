@@ -71,6 +71,11 @@ public:
     int         iRecord;
     char        ValueList[1000][512];
     
+
+	char m_pstrServer[1024];
+	char m_pstrUser[255];
+	char m_pstrPasswd[255];
+
 private:
     char errMsg[1024];
 };

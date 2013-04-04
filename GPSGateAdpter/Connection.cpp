@@ -11,6 +11,10 @@
 CConnection::CConnection()
 {
 	errMsg[0]='\0';
+
+	m_pstrServer[0]='\0';
+	m_pstrUser[0]='\0';
+	m_pstrPasswd[0]='\0';
 }
 
 CConnection::~CConnection()
@@ -105,7 +109,9 @@ int CConnection::connect(char *Server, char *user,char *passwd)
     {
         printf("catch a error!/n");
     }     
-    
+	strcpy(m_pstrServer,Server);
+	strcpy(m_pstrUser,user);
+	strcpy(m_pstrPasswd,passwd);
     return 1;    
 }
 

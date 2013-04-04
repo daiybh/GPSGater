@@ -132,8 +132,8 @@ int GPS_Iocp::Listen( char* ulIP, unsigned short usPort )
 
 	//´´½¨ÄÚ´æ³Ø
 	m_pMemPool = new CMemPool;
-	m_dwMemPoolSize = 1024*1024*10;
-	if(!m_pMemPool->Initialize(m_dwMemPoolSize, 50000, 200))
+	m_dwMemPoolSize = 1024*10;
+	if(!m_pMemPool->Initialize(m_dwMemPoolSize, 500, 200))
 	{
 		return 1;
 	}

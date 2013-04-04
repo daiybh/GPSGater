@@ -91,6 +91,7 @@ private:
 	long getGpsInfo(GPSClass *pCurGPSClass, char *buf,GPSINFO &gpsInfo );
 	long SynchronGPSData(GPSClass **pCurGPSClass,char *pInData,int nLenInData,GPSINFO &gpsInfo);
 	GPSClass * getCurGPSDevice(char *buf,GPSINFO&gpsInfo);
+	int doGpsData(char *buf,GPSGATEDATA gpsData,int &nDataLen,int iTimeCount);
 };
 
 

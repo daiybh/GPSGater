@@ -22,7 +22,7 @@ int GetCommand::StartWork()
 
 	m_pXmlParser->Create();
 	m_pCommandList = new MGBufferListEx();
-	DWORD dTotalSize = 3*1024*1024;
+	DWORD dTotalSize = 3*1024;
 	m_pCommandList->Initialize(dTotalSize,512,1000);
 	int nListenPort=GetPrivateProfileInt(_T("GPSSet"),_T("listenPort_cmd"),120,GetMgConfigFileName());
 

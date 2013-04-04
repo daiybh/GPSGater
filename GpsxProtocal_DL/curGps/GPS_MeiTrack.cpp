@@ -18,6 +18,7 @@ long GPS_MeiTrack::getGpsInfo( char *buf,GPSINFO &gpsInfo )
 {
 	int nRet = 1;
 	const char *pBuf = buf;
+	int nBufferDataLen = strlen(buf);
 	do{
 		//$$A126,863070010099660,AAA,029,22.513211,114.058928,121022092220,V,0,00,0,0,0,0,11872388,363251,000|0|0000|0000,0000,|||09C3|0000,,*FE
 		//$$D175,863070010099660,AAA,144,22.513211,114.058928,121022092543,V,0,25,0,0,0,0,11872388,363251,460|0|2792|0E89,0000,|||0A1F|037E,,,50,10454,39,79,,73,1878.9,113,119,3,46,0,46,*F5
@@ -44,6 +45,7 @@ long GPS_MeiTrack::getGpsInfo( char *buf,GPSINFO &gpsInfo )
 		pBuf = getStr_betweenComma(pBuf,strTemp);
 		//pBuf->863070010099660,AAA,144,22.513211,114.058928,121022155026,V,0,26,0,0,0,0,12445866,386301,460|0|2792|0E89,0000,|||0A2A|0381,,,50,10218,39,79,,73,1878.9,113,119,1,46,0,46,*E5\r\n
 		nDataLen = atoi(strTemp)-1;
+		nBufferDataLen = nDataLen+6;
 		const char * pCheckCode =NULL;
 		{			
 			//判断数据长度 是否正确
@@ -366,7 +368,7 @@ long GPS_MeiTrack::getGpsInfo( char *buf,GPSINFO &gpsInfo )
 
 	}while(0);
 	
-	return nRet;
+	return (nRet>0)?nBufferDataLen:nRet;
 }
 
 BOOL GPS_MeiTrack::getResMsg( char *strBuf,GPSINFO &gpsInfo )

@@ -15,7 +15,7 @@ int CGPS_Socket::StartWork()
 	ITsDevice_Card::CreateInstance(&m_pITSDevice_card);
 
 	m_pDataList = new MGBufferListEx();
-	m_pDataList->Initialize(5*1024,100,1000);
+	m_pDataList->Initialize(50*1024*1024,100,524200);
 	int nListenPort=GetPrivateProfileInt(_T("GPSSet"),_T("listenPort"),110,GetMgConfigFileName());
 
 	if(!m_pITSDevice_card->InitDevice(nListenPort))
