@@ -437,7 +437,8 @@ long Protocal::startGPS(char *buf,int nlen)
 		gpsData.nDataLen =gpsData.nDataLen-nDataLen;
 		if(gpsData.nDataLen<1)
 			break;
-		doGpsData(pDataBuf,gpsData,nDataLen,iTimeCount);
+		if(doGpsData(pDataBuf,gpsData,nDataLen,iTimeCount)==-2002)
+			break;
 		iTimeCount++;
 	}while(1);
 	return 1;
@@ -464,7 +465,7 @@ int Protocal::doGpsData(char *buf,GPSGATEDATA gpsData,int &nDataLen,int iTimeCou
 			buf2HexStr_devx(buf,strTmp,gpsData.nDataLen);
 			Write_Log(strTmp);
 		}
-		return 2;
+		return -2002;
 	//	return returnStar(2,"startGPS-来自GPS报文队列的报文不符合报文的规范",strFilename);
 	}
 	//nret 就是实际使用数据长度
