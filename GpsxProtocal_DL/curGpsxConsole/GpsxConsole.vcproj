@@ -407,6 +407,14 @@
 				</FileConfiguration>
 			</File>
 			<File
+				RelativePath=".\mdump.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\StackWalker.cpp"
+				>
+			</File>
+			<File
 				RelativePath="StdAfx.cpp"
 				>
 				<FileConfiguration
@@ -455,7 +463,15 @@
 				>
 			</File>
 			<File
+				RelativePath=".\mdump.h"
+				>
+			</File>
+			<File
 				RelativePath="Resource.h"
+				>
+			</File>
+			<File
+				RelativePath=".\StackWalker.h"
 				>
 			</File>
 			<File

@@ -99,14 +99,14 @@ long CGPS_Socket::getGPS( GPSGATEDATA *pGpsData )
 	}
 	if(pItem==NULL)
 		return 0;
-	memcpy(pGpsData->pDatabuf ,pItem->pBufV0,pItem->nBufSizeUsedV0);
-	pGpsData->pDatabuf[pItem->nBufSizeUsedV0+1] ='\0';
+	DWORD dwCanCopyLen = min(pGpsData->nDataLen-1,pItem->nBufSizeUsedV0);
+	memcpy(pGpsData->pDatabuf ,pItem->pBufV0,dwCanCopyLen);
+	pGpsData->pDatabuf[dwCanCopyLen+1] ='\0';
 
 	memcpy(&pGpsData->curSocketInfo,&pItem->curSocketInfo,sizeof(SOCKETINFO));
-	pGpsData->nDataLen = pItem->nBufSizeUsedV0;
-	DWORD dwRet = pItem->nBufSizeUsedV0;
+	pGpsData->nDataLen = dwCanCopyLen;
 	m_pDataList->AddItem2EmptyTail(pItem);
-	return dwRet;
+	return dwCanCopyLen;
 
 }
 

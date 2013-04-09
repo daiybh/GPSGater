@@ -4,7 +4,7 @@
 #include "stdafx.h"
 #include "GpsxConsole.h"
 #include "GpsxConsoleDlg.h"
-#include "IDumper.h"
+#include "mdump.h"
 #ifdef _DEBUG
 #define new DEBUG_NEW
 #undef THIS_FILE
@@ -57,9 +57,13 @@ BOOL CGpsxConsoleApp::InitInstance()
 	{
 		CreateMutex(NULL,FALSE,strTmp);
 	}
-	IDumper *pDumper = CreateDumper();
-	if(pDumper)
-		pDumper->SetExceptionFilter();
+// 	IDumper *pDumper = CreateDumper();
+// 	if(pDumper)
+// 		pDumper->SetExceptionFilter();
+
+	//自动抓取错误dump
+	CMiniDumper::SetExceptionFilter(MiniDumpWithFullMemory);
+
 #ifdef _AFXDLL
 	Enable3dControls();			// Call this when using MFC in a shared DLL
 #else
