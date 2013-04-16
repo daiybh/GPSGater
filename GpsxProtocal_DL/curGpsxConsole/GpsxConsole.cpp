@@ -5,6 +5,7 @@
 #include "GpsxConsole.h"
 #include "GpsxConsoleDlg.h"
 #include "mdump.h"
+#include "io.h"
 #ifdef _DEBUG
 #define new DEBUG_NEW
 #undef THIS_FILE

@@ -59,6 +59,7 @@ public:
 	void	startMonitor();
 
 	unsigned __int64  m_intLastDataTime;
+	DWORD			  m_dwCount;
 };
 
 //{{AFX_INSERT_LOCATION}}

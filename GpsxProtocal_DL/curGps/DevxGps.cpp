@@ -57,11 +57,14 @@ Protocal	Gdev;
 
 unsigned __int64 *g_pi64LastDataTime =0;
 unsigned __int64  g_i64MeiligaoCnt=0;
-long start(unsigned __int64 &iLastDataTime)
+DWORD	*g_dwMapCount=0;
+
+long start(unsigned __int64 &iLastDataTime,DWORD &dwMapCount)
 {
 	long nret = 0;
 	Write_Log("devxGPS_start()");
 	g_pi64LastDataTime = &iLastDataTime;
+	g_dwMapCount = &dwMapCount;
 	hTh_GetGPS = CreateThread(NULL,0,threadGetGPSData,NULL,0,&IDThGPS);
 // 	Sleep(30000);//为测试异常暂时关闭从数据库取数据库模块
 // 	hTh_GetDB = CreateThread(NULL,0,threadGetWriteDB,NULL,0,&IDThGPS);	
@@ -297,7 +300,6 @@ long Protocal::updateHaxiMap(char *strSIM,GPSGATEDATA gpsData)
 	else sprintf(strTmp,"updateHaxiMap-哈希表中插入SIM信息失败-%s",strSIM);
 	//TODO: NEEDLOG
 	//m_pGps->wlog("Console",strTmp);
-	
 	LeaveCriticalSection(&m_mapLock);
 	return nret;
 }
@@ -471,6 +473,7 @@ int Protocal::doGpsData(char *buf,GPSGATEDATA gpsData,int &nDataLen,int iTimeCou
 		return -2002;
 	//	return returnStar(2,"startGPS-来自GPS报文队列的报文不符合报文的规范",strFilename);
 	}
+	(*g_dwMapCount)++;
 	//nret 就是实际使用数据长度
 	nDataLen = nret;
 	{

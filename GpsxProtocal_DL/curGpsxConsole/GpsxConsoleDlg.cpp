@@ -221,8 +221,7 @@ void CGpsxConsoleDlg::OnTimer(UINT nIDEvent)
 
 	CTime tt(m_intLastDataTime);
 	CString ss ;
-	ss.Format("lastData_%s--%I64d",tt.Format("%Y-%m-%d %H:%M:%S"),m_intLastDataTime);
-
+	ss.Format("lastData_%s--%I64d--%d",tt.Format("%Y-%m-%d %H:%M:%S"),m_intLastDataTime,m_dwCount);
 //	OutputDebugString(ss);
 	SetWindowText(ss);
 	CTimeSpan	nTmSpan = m_tmStart - CTime::GetCurrentTime();	
@@ -245,7 +244,8 @@ void CGpsxConsoleDlg::initConsole()
 void CGpsxConsoleDlg::startMonitor()
 {
 	m_intLastDataTime = 0;
-	start(m_intLastDataTime);
+	m_dwCount = 0;
+	start(m_intLastDataTime,m_dwCount);
 	m_bRun = true;
 	setStatus(m_bRun);	
 }

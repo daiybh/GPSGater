@@ -97,7 +97,7 @@ private:
 
 #define DLL_TYPE extern "C" __declspec(dllexport)
 
-DLL_TYPE long start(unsigned __int64 &iLastDataTime);
+DLL_TYPE long start(unsigned __int64 &iLastDataTime,DWORD &dwMapCount);
 DLL_TYPE long stop();
 
 
