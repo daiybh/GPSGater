@@ -9,17 +9,24 @@
 struct DataInfo 
 {
 	//这些信息 只在gps数据上来时更新
-	DataInfo(){};
-	DataInfo(double longitude,double latitude,DWORD time)
+	DataInfo()
+	{
+		doubleLongitude = 0;
+		doubleLatitude = 0;
+		dLastUpdate_SQLTime = 0;
+		dLastUpdate_LocationTime=0;
+	};
+	/*DataInfo(double longitude,double latitude,DWORD time)
 	{
 		doubleLongitude = longitude;
 		doubleLatitude = latitude;
-		dLastTime = time;
-	};
+		dLastUpdate_SQLTime = time;
+	};/**/
 	double doubleLongitude;
 	double doubleLatitude;
 	int		nHeading;
-	DWORD dLastTime;
+	DWORD dLastUpdate_LocationTime;
+	__time64_t dLastUpdate_SQLTime;
 	DWORD dwMaxSpeed;
 	char	vehicheID[20]; 
 };

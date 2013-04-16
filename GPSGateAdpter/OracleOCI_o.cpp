@@ -247,7 +247,7 @@ JUDGE_RET COracleOCI_o::judge_GPSData( const GPSINFO* pGpsInfo,const INT64 *iSim
 		pDI->doubleLatitude = doubleLatitude;
 		pDI->doubleLongitude = doubleLongitude;
 		pDI->nHeading = nCurHeading;
-		pDI->dLastTime = GetTickCount();
+		pDI->dLastUpdate_LocationTime = GetTickCount();
 		return RET_NORMAL;
 	}
 	//检查是否属于漂移
@@ -259,7 +259,7 @@ JUDGE_RET COracleOCI_o::judge_GPSData( const GPSINFO* pGpsInfo,const INT64 *iSim
 	{
 		pDI->doubleLatitude = doubleLatitude;
 		pDI->doubleLongitude = doubleLongitude;
-		pDI->dLastTime = GetTickCount();
+		pDI->dLastUpdate_LocationTime = GetTickCount();
 		pDI->nHeading = nCurHeading;
 		return RET_NORMAL;
 	}
@@ -825,9 +825,19 @@ int COracleOCI_o::WriteData( const GPSINFO *pGpsInfo )
 			0 表示定位正常  （包含漂移的 修改gps和坐标 和状态位）
 			1 表示有数据但不定位（数据无效，不修改坐标 要修改gps时间和状态位）
 			/**/
-			nRet =Updata(pGpsInfo,doubleLongitude,doubleLatitude,str_GpsTime,str_time_Servers,judge_ret);
-			if(nRet <1)
-				nRet = nRet -2000;
+			//判断		gpsTime 小于	pDI->dLastUpdate_SQLTime  ，就不更新车位置
+			CString s;
+			s.Format("pDI->dLastUpdate_SQLTime[%I64d]=== gpsTime.GetTime()[%I64d]",
+				pDI->dLastUpdate_SQLTime , gpsTime.GetTime());
+			OutputDebugString(s);
+			if(pDI->dLastUpdate_SQLTime <= gpsTime.GetTime()){
+				nRet =Updata(pGpsInfo,doubleLongitude,doubleLatitude,str_GpsTime,str_time_Servers,judge_ret);
+				if(nRet <1){
+					nRet = nRet -2000;
+				}else{
+					pDI->dLastUpdate_SQLTime = gpsTime.GetTime();
+				}
+			}
 		}
 		else if(RET_OVERAREA_OUT==judge_ret || RET_OVERAREA_IN==judge_ret)
 		{
