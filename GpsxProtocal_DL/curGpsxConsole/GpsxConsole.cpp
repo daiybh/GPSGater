@@ -6,6 +6,7 @@
 #include "GpsxConsoleDlg.h"
 #include "mdump.h"
 #include "io.h"
+#include "MGTOOls.h"
 #ifdef _DEBUG
 #define new DEBUG_NEW
 #undef THIS_FILE
@@ -47,9 +48,10 @@ BOOL CGpsxConsoleApp::InitInstance()
 	// If you are not using these features and wish to reduce the size
 	//  of your final executable, you should remove from the following
 	//  the specific initialization routines you do not need.
+	int nListenPort=GetPrivateProfileInt(_T("GPSSet"),_T("listenPort"),110,GetMgConfigFileName());
 
 	CString strTmp;
-	strTmp.Format(_T("GPSXCONSOLE_H__BA472566_78AA"));
+	strTmp.Format(_T("GPSXCONSOLE_H__BA472566_78AA_%d"),nListenPort);
 	if(OpenMutex(MUTEX_ALL_ACCESS,FALSE,strTmp))
 	{
 		return FALSE;
