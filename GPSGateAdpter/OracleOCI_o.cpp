@@ -252,9 +252,9 @@ JUDGE_RET COracleOCI_o::judge_GPSData( const GPSINFO* pGpsInfo,const INT64 *iSim
 	}
 	//¼ì²éÊÇ·ñÊôÓÚÆ¯ÒÆ
 	bool bRet = checkGPS_Latitude(doubleLongitude,doubleLatitude,pDI->doubleLongitude,pDI->doubleLatitude,m_dwLimit_MaxDistance);
-	CString strLog;
-	strLog.Format(_T("[checkGPS]%I64d checkGPS_latitude(%f,%f,%f,%f,%d,speed=%d)=%d"),*iSim,doubleLongitude,doubleLatitude,pDI->doubleLongitude,pDI->doubleLatitude,m_dwLimit_MaxDistance,nSpeed,bRet);
-	OutputDebugString(strLog);
+// 	CString strLog;
+// 	strLog.Format(_T("[checkGPS]%I64d checkGPS_latitude(%f,%f,%f,%f,%d,speed=%d)=%d"),*iSim,doubleLongitude,doubleLatitude,pDI->doubleLongitude,pDI->doubleLatitude,m_dwLimit_MaxDistance,nSpeed,bRet);
+// 	OutputDebugString(strLog);
 	if(bRet)
 	{
 		pDI->doubleLatitude = doubleLatitude;
