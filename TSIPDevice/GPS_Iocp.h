@@ -15,6 +15,8 @@ private:
 	void					ClearResources(BOOL bCloseListenEvent);
 	static	DWORD WINAPI	_AcceptThread(void *pParam);//接受客户端请求线程
 	static	DWORD WINAPI	_ServiceThread(void *pParam);//服务线程
+	static 	DWORD WINAPI	_DoDetectThread(void *pParam);
+	HANDLE					m_hDoDetect;
 private:
 	RECV_CALLBACKFUNC		m_pRecvCallBackFunc;
 	LPVOID				m_pRecvCBUserData;				// 回调线程，释放线程，两个线程使用。！！！需要保护，使用m_RecvLock锁保护

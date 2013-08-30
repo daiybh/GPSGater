@@ -293,14 +293,6 @@
 			UniqueIdentifier="{4FC737F1-C7A5-4376-A066-2A32D752A2FF}"
 			>
 			<File
-				RelativePath=".\CaptureTsOnRtp.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\CaptureTsOnUdp.cpp"
-				>
-			</File>
-			<File
 				RelativePath=".\ClientContext.cpp"
 				>
 			</File>
@@ -321,27 +313,7 @@
 				>
 			</File>
 			<File
-				RelativePath=".\PC_TsOnIpDevice.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\Rtp.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\SimpleDevice.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\Socket.cpp"
-				>
-			</File>
-			<File
 				RelativePath=".\Socket_IOCP.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\Socket_Spserver.cpp"
 				>
 			</File>
 			<File
@@ -384,24 +356,12 @@
 				RelativePath=".\TSIPDevice.def"
 				>
 			</File>
-			<File
-				RelativePath=".\Udp.cpp"
-				>
-			</File>
 		</Filter>
 		<Filter
 			Name="Header Files"
 			Filter="h;hpp;hxx;hm;inl;inc;xsd"
 			UniqueIdentifier="{93995380-89BD-4b04-88EB-625FBE52EBFB}"
 			>
-			<File
-				RelativePath=".\CaptureTsOnRtp.h"
-				>
-			</File>
-			<File
-				RelativePath=".\CaptureTsOnUdp.h"
-				>
-			</File>
 			<File
 				RelativePath=".\ClientContext.h"
 				>
@@ -419,31 +379,11 @@
 				>
 			</File>
 			<File
-				RelativePath=".\PC_TsOnIpDevice.h"
-				>
-			</File>
-			<File
 				RelativePath=".\Resource.h"
 				>
 			</File>
 			<File
-				RelativePath=".\Rtp.h"
-				>
-			</File>
-			<File
-				RelativePath=".\SimpleDevice.h"
-				>
-			</File>
-			<File
-				RelativePath=".\Socket.h"
-				>
-			</File>
-			<File
 				RelativePath=".\Socket_IOCP.h"
-				>
-			</File>
-			<File
-				RelativePath=".\Socket_Spserver.h"
 				>
 			</File>
 			<File
@@ -460,10 +400,6 @@
 			</File>
 			<File
 				RelativePath=".\TSIPDevice.h"
-				>
-			</File>
-			<File
-				RelativePath=".\Udp.h"
 				>
 			</File>
 		</Filter>

@@ -50,7 +50,7 @@ typedef	struct _io_operation_data
 class CClientContext //: public INetworkConnector
 {
 public:
-	CClientContext(SOCKET s, GPS_Iocp* pGTMIOCP, CMemPool* pMemPool);
+	CClientContext(DWORD dID,SOCKET s, GPS_Iocp* pGTMIOCP, CMemPool* pMemPool);
 	virtual ~CClientContext();
 public:
 	virtual NetworkType GetType();
@@ -65,6 +65,7 @@ public:
 										OUT unsigned short &usRemotePort);
 	void				LockClient(void);
 	void				UnlockClient(void);
+	void				ShutDownSocket();
 public:
 	int					SyncSendData(BYTE* pBuf, DWORD dwSize);//发送数据
 	int AsynSendData(const BYTE* pBuf, DWORD dwSize);//发送数据
@@ -72,6 +73,8 @@ public:
 
 	BOOL				AsyncRecvData();
 	void				OnRecvDataCompleted( DWORD dwIOSize );	//接收包体完毕	
+	void				OnUpdateRecvTime(){m_nLastRecvTime = GetTickCount();}
+	__time64_t			GetUpdateRecvTime(){return m_nLastRecvTime;}
 
 	void				SetCloseCB(DWORD dwCode);
 	void				SetConnectionInfo(unsigned long ulLocalIP,
@@ -84,6 +87,8 @@ public:
 	BOOL				m_bOk;
 	SOCKET				m_s;				// 发送线程，释放线程，两个线程使用。！！！需要保护，使用m_SendLock锁保护
 private:
+	DWORD				m_dwID;
+	__time64_t			m_nLastRecvTime;
 	IO_OPERATION_DATA	m_iIO;			// 读扩展重叠结构数据结构
 	IO_OPERATION_DATA	m_oIO;			// 读扩展重叠结构数据结构
 	CCriticalSection	m_SendLock;		// 发送数据锁

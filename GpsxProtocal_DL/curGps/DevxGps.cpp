@@ -476,7 +476,7 @@ int Protocal::doGpsData(char *buf,GPSGATEDATA gpsData,int &nDataLen,int iTimeCou
 	(*g_dwMapCount)++;
 	//nret 就是实际使用数据长度
 	nDataLen = nret;
-	{
+/*	{
 		sprintf(strTmp,"recvgpsData,commandr=%s,valid=%d,datalen=%d",gpsInfo.COMMADDR,gpsInfo.bValid,gpsData.nDataLen);
 		char *pLogName = LOG_NAME;
 		if(gpsInfo.COMMADDR[0]!='\0')
@@ -485,7 +485,7 @@ int Protocal::doGpsData(char *buf,GPSGATEDATA gpsData,int &nDataLen,int iTimeCou
 		buf2HexStr_devx(buf,gpsData.nDataLen,strTmp,nLen_StrTmp);
 		Write_Log(pLogName,strTmp);
 	}
-	/*
+	
 	if(!gpsInfo.bValid)
 	{
 		char *pLogName = LOG_NAME;

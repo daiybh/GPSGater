@@ -12,8 +12,9 @@ static char THIS_FILE[]=__FILE__;
 // Construction/Destruction
 //////////////////////////////////////////////////////////////////////
 
-CClientContext::CClientContext(SOCKET s, GPS_Iocp* pGTMIOCP, CMemPool* pMemPool)
+CClientContext::CClientContext(DWORD dID,SOCKET s, GPS_Iocp* pGTMIOCP, CMemPool* pMemPool)
 :m_s(s),
+m_dwID(dID),
 m_pGTMIOCP(pGTMIOCP),
 m_dwPacketSize(0),
 m_dwReceivedSize(0),
@@ -261,7 +262,13 @@ int CClientContext::Startwork()
 	AsyncRecvData();
 	return 0;
 }
-
+void CClientContext::ShutDownSocket()
+{
+	if(m_s!=NULL){
+		//shutdown(m_s);
+		closesocket(m_s);
+	}
+}
 int CClientContext::Stopwork()
 {
 	if (m_s != NULL)

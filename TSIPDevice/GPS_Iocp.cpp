@@ -2,6 +2,8 @@
 #include "GPS_Iocp.h"
 #include "ClientContext.h"
 #include "ClientManager.h"
+
+#define  MAX_IOCP_THREAD	(35)
 GPS_Iocp::GPS_Iocp(void)
 {
 }
@@ -166,9 +168,16 @@ int GPS_Iocp::Listen( char* ulIP, unsigned short usPort )
 	SYSTEM_INFO SystemInfo;
 	GetSystemInfo(&SystemInfo);
 	DWORD dwThreadSum = SystemInfo.dwNumberOfProcessors * 2 + 2;//经验值
+    if(dwThreadSum > MAX_IOCP_THREAD)
+	{
+		dwThreadSum = MAX_IOCP_THREAD;
+	}
+
+	strLog.Format(_T("CreateThread Count(%d),Current Processors number(%d) GTMIOCP::Listen."),dwThreadSum,SystemInfo.dwNumberOfProcessors);
+	WriteLog(SERVERLOGNAME, logLevelInfo, strLog);
 
 	// 创建服务线程
-	for(DWORD i = 0; i < dwThreadSum; i++)
+	for(DWORD i = m_nThreadNum; i < dwThreadSum; i++)
 	{
 		if ((m_hThread[m_nThreadNum++] = CreateThread(NULL, 
 			0,
@@ -188,6 +197,13 @@ int GPS_Iocp::Listen( char* ulIP, unsigned short usPort )
 		}		
 	}
 
+	m_hDoDetect = CreateEvent(0,0,0,"dodetect");
+	CreateThread(NULL,
+		0,
+		_DoDetectThread,
+		this,
+		0,
+		&dwThreadID);
 	strLog.Format(_T("GTMCreateServer() Successed. _ServiceThread dwThreadSum=%d. IP=%s.Port=%d. GTMIOCP::Listen"),
 		dwThreadSum,strIP, usPort);
 	WriteLog(SERVERLOGNAME,logLevelInfo, strLog);
@@ -224,6 +240,7 @@ DWORD WINAPI GPS_Iocp::_AcceptThread( void *pParam )
 	CString		strLog;
 	CString		strIP;
 	TCHAR		wcIP[MAX_PATH];
+	DWORD		dwAcceptID=0;
 
 	while(pGTMIOCP->m_bRunning)
 	{
@@ -284,11 +301,12 @@ DWORD WINAPI GPS_Iocp::_AcceptThread( void *pParam )
 #endif
 
 				//创建客户端节点
-				CClientContext *pClient = new CClientContext(sAccept,pGTMIOCP, pGTMIOCP->m_pMemPool);
+				CClientContext *pClient = new CClientContext(dwAcceptID++,sAccept,pGTMIOCP, pGTMIOCP->m_pMemPool);
 
 				//strLog.Format(_T("WSAAccept() one client. IP=%s.Port=%d. client=%x"),strIP, ntohs(servAddr.sin_port),pClient);
 				//WriteLog(SERVERLOGNAME, logLevelInfo, strLog);
 				OutputDebugString(strLog);
+				
 				pClient->SetConnectionInfo(pGTMIOCP->m_ulLocalIP, pGTMIOCP->m_usLocalPort, ntohl(servAddr.sin_addr.s_addr), ntohs(servAddr.sin_port));
 				pClient->SetReceiveCallBack(pGTMIOCP->m_pRecvCallBackFunc,pGTMIOCP->m_pRecvCBUserData);
 
@@ -329,7 +347,23 @@ DWORD WINAPI GPS_Iocp::_AcceptThread( void *pParam )
 	WriteLog(SERVERLOGNAME, logLevelInfo, _T("Exit GTMIOCP::_AcceptThread()."));
 	return 0;
 }
+DWORD WINAPI GPS_Iocp::_DoDetectThread(void *pParam){
 
+	GPS_Iocp *pGTMIOCP = (GPS_Iocp*)pParam;//主窗口指针
+	CString	strLog;
+
+	DWORD dwClientCount=0;
+	DWORD dwStartTime = GetTickCount();
+	__int64 i64d_AllDeleteCount =0;
+	while(1){
+		WaitForSingleObject(pGTMIOCP->m_hDoDetect,30*1000);
+		dwClientCount = CClientManager::GetClientManager()->GetClientCount();
+		DWORD dwDeleteCount = CClientManager::GetClientManager()->DetectLiveTime();
+		i64d_AllDeleteCount+=dwDeleteCount;
+			printf("dectected[%d]--del[ALL:%I64d,%d]---%d--all:%I64d\n",GetTickCount()-dwStartTime,i64d_AllDeleteCount,dwDeleteCount,dwClientCount,CClientManager::GetClientManager()->GetAllClientCount());
+	}
+	return 1;
+}
 DWORD WINAPI GPS_Iocp::_ServiceThread( void *pParam )
 {
 	GPS_Iocp *pGTMIOCP = (GPS_Iocp*)pParam;//主窗口指针
@@ -353,18 +387,16 @@ DWORD WINAPI GPS_Iocp::_ServiceThread( void *pParam )
 			&lpOverlapped,
 			INFINITE);
 
-		if(GetTickCount() -dNow > 1000)
-		{
-			strLog.Format(_T("ServiceThread[%x] Live--bIORet=%d pClient=%x"),GetCurrentThreadId(),bIORet,pClient);
-			OutputDebugString(strLog);
-			dNow = GetTickCount();
-		}
 		//失败的操作完成			
 		if ((FALSE == bIORet && NULL != pClient) || dwIoSize == 0)
 		{		
-			strLog.Format(_T("ServiceThread recv client=%x %d,%d"),pClient,pClient->m_bOk,dwIoSize);
-			OutputDebugString(strLog);
+			//需要删除连接
+			//printf("_ServiceThread ioret=%d iosize=%d--gtmiocp:%x--pClient:%x\n",bIORet,dwIoSize,pGTMIOCP,pClient);
+
 			CClientManager *pClientMgr = CClientManager::GetClientManager();
+
+			strLog.Format(_T("XXXServiceThread recv client=%x bok=%d,iosize=%d ioret=%d count:%d\n"),pClient,pClient->m_bOk,dwIoSize,bIORet,pClientMgr->GetClientCount());
+			OutputDebugString(strLog);
 			if (pClient != NULL && pClientMgr->FindClientAndLock(pClient))
 			{				
 				int iErr = GetLastError();
@@ -372,9 +404,11 @@ DWORD WINAPI GPS_Iocp::_ServiceThread( void *pParam )
 				//strLog.Format(_T("Client break off. Delete from ClientMap. SOCKET=%d. Err=%d. dwIoSize=%d. ThreadID=%d"),
 				//	pClient->m_s, iErr, dwIoSize, GetCurrentThreadId());
 				//WriteLog(SERVERLOGNAME, logLevelWarring, strLog);
+				//printf(strLog);
 				pClient->m_bOk = FALSE;
 				pClient->SetCloseCB(STATUS_REMOTECLOSED);	
 				pClientMgr->UnlockClient(pClient);
+				pClientMgr->DeleteClient(pClient,TRUE);
 			}
 			pClient = NULL;
 		}
@@ -416,6 +450,7 @@ DWORD WINAPI GPS_Iocp::_ServiceThread( void *pParam )
 
 int GPS_Iocp::StartWork( char* ulIP, unsigned short usPort,RECV_CALLBACKFUNC pFunc,LPVOID pUserData )
 {
+	printf("\nstartwork--port=%d ip=%s\n",usPort,ulIP);
 	m_pRecvCallBackFunc = NULL;
 	m_pRecvCBUserData = NULL;
 	int nRet = -1;

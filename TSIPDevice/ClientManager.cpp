@@ -12,6 +12,8 @@ CClientManager* CClientManager::m_pClientMgr = NULL;
 CClientManager::CClientManager()
 {
 	m_pClientMgr = NULL; 
+	m_dwClientCount = 0;
+	m_i64dAllClientCount = 0;
 }
 
 CClientManager::~CClientManager()
@@ -35,6 +37,11 @@ void CClientManager::AddClient( _ClientData clientdata )
 {	
 	CSingleLock slock(&m_csClientMapLock, TRUE);
 	m_clientMap.insert(ClientMap::value_type((DWORD)clientdata.socket, clientdata));
+	clientdata.pClient->OnUpdateRecvTime();
+	m_dwClientCount = m_clientMap.size();
+	m_i64dAllClientCount++;
+	//m_dwClientCount++;
+	//printf("\naddClient--%d\n",m_dwClientCount);
 }
 
 /* 
@@ -62,7 +69,7 @@ void CClientManager::DeleteClient( CClientContext *pClient, BOOL bDelete )
 			break;
 		}		
  	}
-	
+	m_dwClientCount = m_clientMap.size();
 }
 
 /* 
@@ -84,6 +91,7 @@ void CClientManager::DeleteAllClient( void )
 
 	//不删除管理起来的所有连接对象，由使用者自己释放
 	m_clientMap.clear();
+	m_dwClientCount = m_clientMap.size();
 }
 
 /* 
@@ -118,24 +126,65 @@ void CClientManager::ProcessIO( byte type, CClientContext* pClient, DWORD dwIOSi
 	case IOWrite:
 		{
 			pClient->OnSendCompleted(dwIOSize);
+			pClient->OnUpdateRecvTime();
 			break;
 		}
 	case IORead_GPS_Body:
 		{
 			pClient->OnRecvDataCompleted(dwIOSize);
+			pClient->OnUpdateRecvTime();
 			break;
 		}
 	default:break;
 	}		
 }
+DWORD CClientManager::DetectLiveTime(){
 
+	__time64_t dNowTime = GetTickCount();
+
+	CSingleLock slock(&m_csClientMapLock, TRUE);
+
+	ClientMap::iterator iter;
+	_ClientData ClientData;
+
+	BOOL bDelete = TRUE;
+	DWORD dwDeleteCount = 0;
+	for(iter = m_clientMap.begin(); iter != m_clientMap.end(); )
+	{
+		ClientData = (*iter).second;
+		DWORD dC =dNowTime -ClientData.pClient->GetUpdateRecvTime();
+		BOOL bHadDelete=false;
+		if(dC>1000*60*3)
+		{
+			//printf("now[%I64d]-last[%I64d]=dc[%d] max 1000*60*3.client=%x\n",dNowTime,ClientData.pClient->GetUpdateRecvTime(),dC,ClientData.pClient);
+
+			if (bDelete)
+			{
+				closesocket((*iter).first);
+				//ClientData.pClient->ShutDownSocket();
+				/*
+				delete ClientData.pClient;
+				ClientData.pClient = NULL;
+				iter = m_clientMap.erase(iter);
+				bHadDelete=TRUE;
+				/**/
+			}	
+			dwDeleteCount++;
+		}
+		if(!bHadDelete)
+			++iter;
+	}
+	m_dwClientCount = m_clientMap.size();
+	return dwDeleteCount;
+}
 BOOL CClientManager::FindClientAndLock(CClientContext *pClient)
 {
 	CSingleLock slock(&m_csClientMapLock, TRUE);
 
 	ClientMap::iterator iter;
 	_ClientData ClientData;
-	
+
+	//printf("FindClientAndLock--%d\n",m_clientMap.size());
 	for(iter = m_clientMap.begin(); iter != m_clientMap.end(); iter++)
 	{
 		ClientData = (*iter).second;

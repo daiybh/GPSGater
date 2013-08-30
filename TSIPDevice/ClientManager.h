@@ -34,6 +34,9 @@ public:
 	BOOL			FindClientAndLock(CClientContext *pClient);
 	void			LockClient(CClientContext *pClient);
 	void			UnlockClient(CClientContext *pClient);
+	DWORD			GetClientCount(){return m_dwClientCount;}
+	__int64			GetAllClientCount(){return m_i64dAllClientCount;}
+	DWORD			DetectLiveTime();
 private:
 	ClientMap		m_clientMap;							//管理客户端映射，对应一个唯一的CommID
 	CClientManager();
@@ -41,6 +44,8 @@ private:
 	CClientManager& operator = (CClientManager &other);
 	static CClientManager *m_pClientMgr;
 	CCriticalSection m_csClientMapLock;							//保护客户端链表对象
+	DWORD			m_dwClientCount;
+	__int64			m_i64dAllClientCount;
 };
 
 #endif // !defined(AFX_CLIENTMANAGER_H__688E1208_4C99_4411_938C_D8B547910E87__INCLUDED_)
