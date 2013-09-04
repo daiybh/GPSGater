@@ -154,37 +154,8 @@ Protocal::Protocal()
 GPSClass * Protocal::getCurGPSDevice(char *buf,GPSINFO&gpsInfo)
 {
 	GPSClass * gpsCurDevice=NULL;
-	if(buf[0]=='$' && buf[1]=='$')
-	{
-		gpsCurDevice = &m_gpsMeiTrack;
-		gpsInfo.nDevID +=GPS_MEITRACK;
-		gpsInfo.nDevID +=GPSID_TID;
-		if(g_i64MeiligaoCnt++ %100==0)
-		{
-			Write_Log("meiligao",buf);
-		}
-	}
-	else	if(buf[0]=='*'||buf[0]=='$'||buf[0]=='X')
-	{
-		gpsInfo.nDevID += GPS_RUIXING;
-		gpsInfo.nDevID += GPSID_TID;
-
-		/*
-		if(buf[0]=='*') nlen = 77;
-		else nlen = 32;
-		memcpy(strTmp,buf,nlen);
-		memcpy(buf,strTmp,nlen);
-		*/
-		gpsCurDevice =  &m_gpsRuiXing;
-	}
-	else if(0)
-	{
-		gpsInfo.nDevID += GPS_YOUHAO;
-		gpsInfo.nDevID += GPSID_SIM;
-		gpsCurDevice =  &m_gpsYouHao;
-	}
-	return gpsCurDevice;
-	
+	gpsCurDevice = GPSClass::getProtocol(buf,&gpsInfo);
+	return gpsCurDevice;	
 }
 /*
 bool Protocal::setCurGpsDev( char *buf,GPSINFO &gpsInfo )
@@ -246,14 +217,14 @@ void wlog( char *buf,int nLen,GPSINFO &gpsInfo,BOOL bToGps/*=TRUE*/ )
 	//wlog(gpsInfo.COMMADDR,strGpsInfo);
 	Write_Log(gpsInfo.COMMADDR,strGpsInfo);
 }
-long Protocal::getGpsInfo(GPSClass *pCurGPSClass, char *buf,GPSINFO &gpsInfo )
+long Protocal::getGpsInfo( GPSClass *pCurGPSClass, char *buf,int nbufLen,GPSINFO &gpsInfo )
 {
 	long nret = 0;
 	BOOL bToGps = FALSE;
 
 	if(!strlen(buf)) bToGps = TRUE;
 	//nret = m_pGps->getGpsInfo(buf,gpsInfo);
-	nret = pCurGPSClass->getGpsInfo(buf,gpsInfo);
+	nret = pCurGPSClass->getGpsInfo(buf,nbufLen,gpsInfo);
 	//TODO: NEEDLOG
 	//m_pGps->wlog(buf,m_nDataLen,gpsInfo,bToGps);	
 	return nret;
@@ -269,7 +240,7 @@ long Protocal::SynchronGPSData(GPSClass **pCurGPSClass,char *pInData,int nLenInD
 	if(*pCurGPSClass==NULL)
 		return -1;
 	//if(!setCurGpsDev(pInData,gpsInfo))	return 1;//txt do not fitable any protocal
-	nret = getGpsInfo(*pCurGPSClass,pInData,gpsInfo);
+	nret = getGpsInfo(*pCurGPSClass,pInData,nLenInData,gpsInfo);
 	
 	return nret<0?(nret-1000):nret;
 }

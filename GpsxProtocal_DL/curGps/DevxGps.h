@@ -20,9 +20,6 @@ using namespace std;
 
 #include <wtypes.h>
 #include "GpsData.h"
-#include "GpsYouHao.h"
-#include "GpsXingRui.h"
-#include "GPS_MeiTrack.h"
 #include "GpsBase.h"
 #include "IGPSGateAdpter.h"
 
@@ -67,9 +64,6 @@ public:
 
 protected:
 private:
-	GpsYouHao	m_gpsYouHao;
-	GpsXingRui	m_gpsRuiXing;
-	GPS_MeiTrack	m_gpsMeiTrack;
 	GPSINFO		m_gpsInfo;
 	int			m_nDataLen;
 	
@@ -88,7 +82,7 @@ private:
 
 	//////////////////////////////////////////////////////////////////////////
 	//bool setCurGpsDev(char *buf,GPSINFO &gpsInfo );
-	long getGpsInfo(GPSClass *pCurGPSClass, char *buf,GPSINFO &gpsInfo );
+	long getGpsInfo(GPSClass *pCurGPSClass, char *buf,int nbufLen,GPSINFO &gpsInfo );
 	long SynchronGPSData(GPSClass **pCurGPSClass,char *pInData,int nLenInData,GPSINFO &gpsInfo);
 	GPSClass * getCurGPSDevice(char *buf,GPSINFO&gpsInfo);
 	int doGpsData(char *buf,GPSGATEDATA gpsData,int &nDataLen,int iTimeCount);

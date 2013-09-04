@@ -1,29 +1,21 @@
-// GpsXingRui.h: interface for the GpsXingRui class.
-//
-//////////////////////////////////////////////////////////////////////
-
-#if !defined(AFX_GPSXINGRUI_H__AA7BA406_4507_4EAD_9994_BFE3C96BF08E__INCLUDED_)
-#define AFX_GPSXINGRUI_H__AA7BA406_4507_4EAD_9994_BFE3C96BF08E__INCLUDED_
-
-#if _MSC_VER > 1000
 #pragma once
-#endif // _MSC_VER > 1000
+#include "gpsbase.h"
 
-#include "GpsBase.h"
-
-class GpsXingRui   : public  GPSClass
+class GpsJTT808 :
+	public GPSClass
 {
-
 public:
-	GpsXingRui();
-	virtual ~GpsXingRui();
+	GpsJTT808(void);
+	~GpsJTT808(void);
+	virtual BOOL isThisProtocol(char *buf,GPSINFO *pGpsInfo);
+	virtual char* getProtocolName(int  &nDevID);
+	/*
+	 *	把gps 上来的数据（buf)翻译到 struct gpsInfo 中
+	 */
+	virtual long getGpsInfo(char *buf,int nbufLen,GPSINFO &gpsInfo);
+	virtual BOOL getResMsg(char *strBuf,GPSINFO &gpsInfo);
 
-	virtual long getGpsInfo(char *buf,GPSINFO &gpsInfo);
-	virtual BOOL getResMsg(char *strBuf,GPSINFO &gpsInfo);	
-private:
 	virtual void getMsgID(char *buf,GPSINFO &gpsInfo);
-
-	inline void convertTitude(char *strTitude,bool bPositive,bool bLongtitude,bool bVmode);
 protected:
 	virtual long _handleCmd_overspeed(GPSCommand*pGpsCommand,int nMaxSpeed,int nMinSpeed,int nContinue,int nValid=1);
 	virtual long _handleCmd_SetArea(GPSCommand*pGpsCommand,TCHAR *pAreaID,TCHAR *palertType,TCHAR *pType,TCHAR *pLeftLat,TCHAR *prightlat,TCHAR *pleftlng,TCHAR *prightlng,TCHAR *pcenterlat,TCHAR *pcenterlng,TCHAR *pRadius);
@@ -41,14 +33,30 @@ protected:
 	virtual long _handleCmd_Set_Oil_LowAlarm(GPSCommand*pGpsCommand,TCHAR*poilvalue);
 	virtual long _handleCmd_Get_Device_Version_and_SN(GPSCommand*pGpsCommand,TCHAR*psetType);
 	virtual long _handleCmd_Set_Reset_Mileage_and_Runtime(GPSCommand*pGpsCommand);
-protected:
-	
-
-	long mapTxtInfo2( char *buf,GPSINFO &gpsInfo );
-	long mapTxtInfo( char *buf,GPSINFO &gpsInfo );
-	long mapHexXInfo( char *buf,GPSINFO &gpsInfo );
-	long mapHexVInfo( char *buf,GPSINFO &gpsInfo );
-
+private:
+	struct tagMsgPaket{
+		WORD msgTotalPakets;
+		WORD msgPaketIdx;
+	};
+	struct tagMsgBodyAttribute{
+		tagMsgBodyAttribute(){tagMsgBodyAttribute(0);};
+		tagMsgBodyAttribute(WORD wAttribute){
+			this->msgBodyLen = wAttribute&0x3FF;
+			this->msgDecodeType=(wAttribute>>10)&0x7;
+			this->bPaket = (wAttribute>>13)&0x1;
+			this->Rev=(wAttribute>>14)&3;
+		};
+		int msgBodyLen:10;
+		int msgDecodeType:3;
+		int bPaket:1;
+		int Rev:2;
+	};
+	struct tagMsgHead{
+		WORD msgID;
+		tagMsgBodyAttribute msgBodyAttribute;
+		char sim[12];
+		WORD msgSN;
+		tagMsgPaket msgPaket;
+	};
+	int diposMsgBody(tagMsgHead msgHead,const char *pMsgBody,GPSINFO *gpsInfo);
 };
-
-#endif // !defined(AFX_GPSXINGRUI_H__AA7BA406_4507_4EAD_9994_BFE3C96BF08E__INCLUDED_)

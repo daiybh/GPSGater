@@ -1,7 +1,7 @@
 // GpsYouHao.cpp: implementation of the GpsYouHao class.
 //
 //////////////////////////////////////////////////////////////////////
-
+#include "stdafx.h"
 #include "GpsYouHao.h"
 
 //////////////////////////////////////////////////////////////////////
@@ -30,7 +30,7 @@ Rerurn:
 1	the message type is not match
 3	the GPSINFO parameter is not correct
 ************************************/
-long GpsYouHao::getGpsInfo(char *buf,GPSINFO &gpsInfo)
+long GpsYouHao::getGpsInfo(char *buf,int nbufLen,GPSINFO &gpsInfo)
 {
 	long nret = 0;
 // 	GPSINFO	gpsInfo;
@@ -336,7 +336,7 @@ long GpsYouHao::sychroTerminalFeedbackInfo( char *buf,GPSINFO &gpsInfo )
 //技术文档定义不清晰
 long GpsYouHao::sychroAutoNavigation( char *buf,GPSINFO &gpsInfo )
 {
-	UNFUN
+	//UNFUN
 	return 0;
 }
 
@@ -418,7 +418,7 @@ BOOL GpsYouHao::getResMsg( char *strBuf,GPSINFO &gpsInfo )
 		bret = FALSE;
 	}
 
-	getGpsInfo(strBuf,gpsInfo);	
+	getGpsInfo(strBuf,strlen(strBuf),gpsInfo);	
 	return bret;
 }
 
@@ -510,5 +510,17 @@ long GpsYouHao::_handleCmd_Set_Oil_LowAlarm( GPSCommand*pGpsCommand,TCHAR*poilva
 {
 
 	return 1;
+}
+
+BOOL GpsYouHao::isThisProtocol( char *buf ,GPSINFO *pGpsInfo)
+{
+
+	return FALSE;
+}
+
+char* GpsYouHao::getProtocolName( int  &nDevID )
+{
+	nDevID = GPS_YOUHAO;
+	return _T("gps_youhao");
 }
 

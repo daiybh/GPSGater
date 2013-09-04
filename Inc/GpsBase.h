@@ -14,22 +14,33 @@
 
 #include "GpsData.h"
 
-#define _T(x)  (x)
-
+#define LOG_NAME "DevxGPS"
 //virtual long getGpsInfo(char *buf,GPSINFO &gpsInfo)
 //Return
 enum{E_MSG_DISMACH=1,
 E_MSG_UNKOWN};
 
 #include "I_XMLParser.h"
-class GPSClass
+
+
+#ifdef _I_GPSCLASS_H_
+#define I_GPSCLASS_H_EXPORT_MODE __declspec(dllexport)
+#else
+#define I_GPSCLASS_H_EXPORT_MODE __declspec(dllimport)
+#pragma comment(lib,"ProtocolMan.lib")
+#endif
+
+class I_GPSCLASS_H_EXPORT_MODE GPSClass
 {
 public:	
-	GPSClass();	
+	GPSClass();
+	static GPSClass *getProtocol(char *buf,GPSINFO *pGpsInfo);
+	virtual BOOL isThisProtocol(char *buf,GPSINFO *pGpsInfo)=0;
+	virtual char* getProtocolName(int &nDevID)=0;
 	/*
 	 *	把gps 上来的数据（buf)翻译到 struct gpsInfo 中
 	 */
-	virtual long getGpsInfo(char *buf,GPSINFO &gpsInfo)=0;
+	virtual long getGpsInfo(char *buf,int nbufLen,GPSINFO &gpsInfo)=0;
 	virtual BOOL getResMsg(char *strBuf,GPSINFO &gpsInfo)=0;
 	/*
 	 *	把想要发送给gps 的数据翻译成gps 能识别的结构
@@ -38,16 +49,17 @@ public:
 	 * @return   目标buffer的大小
 	 */
 	virtual long getConsole2GPSData(const char *fromConsole_srcBuf,GPSCommand *pGpsCommand);
-private:	
-	void wlog(char *buf,int nLen,GPSINFO &gpsInfo,BOOL bToGps=TRUE);
-	void wlog(char *logName,char *strlog);
-	void wlog(char *logName,char *strlog,int nlen);
+private:
+protected:
+	void Write_Log(char*pLogName,const char *pLogContent);
+	void Write_Log(const char *pLogContent);
+
 protected:
 	virtual void getMsgID(char *buf,GPSINFO &gpsInfo)=0;
 	const char * find_Comma(const char *srcStr,int &nLen);
 	const char * getStr_betweenComma(const char *pBuf,char *destStr);
 	void getCheckCode(char *strBuf,char *strCheckCode);
-	int getCheckCode(char *pstrBuf,int nStrLen,char *strCheckCode);
+	int getCheckCode(const char *pstrBuf,int nStrLen,char *strCheckCode);
 	struct tm *GetLocalTime();
 private:
 	//处理命令相关-begin
@@ -93,6 +105,8 @@ protected:
 	char	m_strConsole[64];
 	char	m_strProtocal[64];
 	char	m_strInterval[5];
+
+	unsigned __int64  m_i64RecvCnt;
 
 	I_XMLParser		* m_pXmlParser;
 };

@@ -1,3 +1,4 @@
+#include "stdafx.h"
 #include "GPS_MeiTrack.h"
 
 GPS_MeiTrack::GPS_MeiTrack(void)
@@ -14,7 +15,7 @@ GPS_MeiTrack::~GPS_MeiTrack(void)
 对压力>,<空气流量>,<节气门位置>,<单次行驶里程>,<百分比剩余油量>,<故障码及冻结帧/就绪状态><*检验
 码>\r\n 
 /**/
-long GPS_MeiTrack::getGpsInfo( char *buf,GPSINFO &gpsInfo )
+long GPS_MeiTrack::getGpsInfo( char *buf,int nbufLen,GPSINFO &gpsInfo )
 {
 	int nRet = 1;
 	const char *pBuf = buf;
@@ -705,4 +706,25 @@ long GPS_MeiTrack::_handleCmd_Set_Oil_LowAlarm( GPSCommand*pGpsCommand,TCHAR*poi
 	getFullCommandLine(pGpsCommand->strCommandLine,pGpsCommand->commandParameters,"V");
 
 	return 1;
+}
+
+BOOL GPS_MeiTrack::isThisProtocol( char *buf ,GPSINFO *pGpsInfo)
+{
+	if(buf[0]=='$' && buf[1]=='$')
+	{
+		pGpsInfo->nDevID +=GPS_MEITRACK;
+		pGpsInfo->nDevID +=GPSID_TID;
+		if(m_i64RecvCnt++ %100==0)
+		{
+			Write_Log("meiligao",buf);
+		}
+		return TRUE;
+	}
+	return FALSE;
+}
+
+char* GPS_MeiTrack::getProtocolName( int  &nDevID )
+{
+	nDevID = GPS_MEITRACK;
+	return _T("gps_meitrack");
 }

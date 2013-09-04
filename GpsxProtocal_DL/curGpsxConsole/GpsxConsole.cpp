@@ -41,6 +41,7 @@ CGpsxConsoleApp theApp;
 /////////////////////////////////////////////////////////////////////////////
 // CGpsxConsoleApp initialization
 
+
 BOOL CGpsxConsoleApp::InitInstance()
 {
 	AfxEnableControlContainer();

@@ -9,18 +9,35 @@
 	
 	purpose:	
 *********************************************************************/
+#include "stdafx.h"
 #include <stdio.h>
 #include "GpsBase.h"
-#include "NantianPR.h"
+//#include "NantianPR.h"
 
+#include "MGTOOls.h"
 #include <time.h>
+#include "GpsJTT808.h"
+#include "GpsXingRui.h"
+#include "GPS_MeiTrack.h"
+#include "GpsYouHao.h"
 
 // long GPSClass::getGpsInfo( char *buf,GPSINFO &gpsInfo )
 // {
 // 	return 0;	
 // }
 
-int GPSClass::getCheckCode(char *pstrBuf,int nStrLen,char *strCheckCode)
+GpsYouHao	m_gpsYouHao;
+GpsXingRui	m_gpsRuiXing;
+GPS_MeiTrack	m_gpsMeiTrack;
+GpsJTT808		m_gpsJTT808;
+GPSClass * GPSClass::getProtocol( char *buf,GPSINFO *pGpsInfo )
+{
+	if(m_gpsMeiTrack.isThisProtocol(buf,pGpsInfo))return &m_gpsMeiTrack;
+	else if(m_gpsRuiXing.isThisProtocol(buf,pGpsInfo))return &m_gpsRuiXing;
+	else if(m_gpsJTT808.isThisProtocol(buf,pGpsInfo))return &m_gpsJTT808;
+	return NULL;
+}
+int GPSClass::getCheckCode(const char *pstrBuf,int nStrLen,char *strCheckCode)
 {
 	long nCode = 0;
 	for(int i=0;i<nStrLen;i++)
@@ -46,27 +63,6 @@ void GPSClass::getCheckCode( char *strBuf,char *strCheckCode )
 
 	strcpy(strCheckCode,strupr(strTmp));
 }
-
-void GPSClass::wlog( char *logName,char *strlog )
-{
-	char	strTmp[512]="";
-
-	strcat(strTmp,logName);
-	strcat(strTmp,".log");
-	renameLogName(strTmp);
-	wInf(strlog);
-}
-
-void GPSClass::wlog( char *logName,char *strlog, int nlen )
-{
-	char	strTmp[512]="";
-	
-	strcat(strTmp,logName);
-	strcat(strTmp,".log");
-	renameLogName(strTmp);
-	wInf(strlog,nlen);
-}
-
 
 
 char strGPSTab[][30]={
@@ -105,22 +101,6 @@ void buf2HexStr(const char *pSrcbuf,char *pDestBuf,int nLen)
 		pPos+=2;
 	}	
 }
-void GPSClass::wlog( char *buf,int nLen,GPSINFO &gpsInfo,BOOL bToGps/*=TRUE*/ )
-{
-	char strGpsInfo[1024]="";
-
-	if(bToGps)	sprintf(strGpsInfo,"%s-","[Console]→[GPS]");
-	else 
-		sprintf(strGpsInfo,"%s-","[GPS]→[Console]");
-
-	strcat(strGpsInfo,buf);
-	if(!bToGps)
-	{
-		//把buf 转换成16进制显示
-		buf2HexStr(buf,strGpsInfo+strlen(strGpsInfo),nLen);
-	}
-	wlog(gpsInfo.COMMADDR,strGpsInfo);
-}
 
 GPSClass::GPSClass()
 {
@@ -136,6 +116,7 @@ GPSClass::GPSClass()
 	I_XMLParser::CreateInstance(&m_pXmlParser);
 
 	m_pXmlParser->Create();
+	m_i64RecvCnt =0;
 }
 
 const char * GPSClass::find_Comma(const char *srcStr,int &nLen)
@@ -707,3 +688,14 @@ long GPSClass::handleCmd_Get_Device_Version_and_SN( GPSCommand*pGpsCommand )
 	pGpsCommand->pVoid = (int*)nRecordID;		
 	return pGpsCommand->nLenCommandLine;
 }
+
+void GPSClass::Write_Log( char*pLogName,const char *pLogContent )
+{
+	::WriteLog(pLogName,logLevelError,pLogContent);
+}
+
+void GPSClass::Write_Log( const char *pLogContent )
+{
+	::WriteLog(LOG_NAME,logLevelError,pLogContent);
+}
+

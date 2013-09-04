@@ -1,7 +1,7 @@
 // GpsXingRui.cpp: implementation of the GpsXingRui class.
 //
 //////////////////////////////////////////////////////////////////////
-
+#include "stdafx.h"
 #include "GpsXingRui.h"
 
 //////////////////////////////////////////////////////////////////////
@@ -17,7 +17,7 @@ GpsXingRui::~GpsXingRui()
 }
 
 
-long GpsXingRui::getGpsInfo( char *buf,GPSINFO &gpsInfo )
+long GpsXingRui::getGpsInfo( char *buf,int nbufLen ,GPSINFO &gpsInfo )
 {
 	long nret = 0;
 	char strDown[512]="";
@@ -95,7 +95,7 @@ BOOL GpsXingRui::getResMsg( char *strBuf,GPSINFO &gpsInfo )
 		bret = TRUE;
 		gpsInfo.nMsgID = MSG_CALLTIMER;
 		strcpy(gpsInfo.IntervalTime,m_strInterval);
-		getGpsInfo(strBuf,gpsInfo);
+		getGpsInfo(strBuf,strlen(strBuf),gpsInfo);
 		return bret;
 	}
 
@@ -815,4 +815,21 @@ long GpsXingRui::_handleCmd_Set_Reset_Mileage_and_Runtime( GPSCommand*pGpsComman
 {
 
 	return 1;
+}
+
+BOOL GpsXingRui::isThisProtocol( char *buf ,GPSINFO *pGpsInfo)
+{
+	if(buf[0]=='*'||buf[0]=='$'||buf[0]=='X')
+	{
+		pGpsInfo->nDevID += GPS_RUIXING;
+		pGpsInfo->nDevID += GPSID_TID;
+		return TRUE;
+	}
+	return FALSE;
+}
+
+char* GpsXingRui::getProtocolName( int  &nDevID )
+{
+	nDevID = GPS_RUIXING;
+	return _T("gps_ruixing");
 }
