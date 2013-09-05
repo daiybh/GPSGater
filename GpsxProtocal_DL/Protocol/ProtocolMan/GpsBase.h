@@ -21,6 +21,7 @@ enum{E_MSG_DISMACH=1,
 E_MSG_UNKOWN};
 
 #include "I_XMLParser.h"
+#include "MGTOOls.h"
 
 
 #ifdef _I_GPSCLASS_H_

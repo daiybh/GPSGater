@@ -485,6 +485,7 @@ int Protocal::doGpsData(char *buf,GPSGATEDATA gpsData,int &nDataLen,int iTimeCou
 		//normal数据
 
 		int nRet = writeDataBase(gpsInfo);
+		nRet =0;
 		if(nRet<1) 
 		{
 			sprintf(strTmp,"[Protocal]→[DB]-Fail to write DB.ret=%d,commandr=%s",nRet,gpsInfo.COMMADDR);
@@ -498,8 +499,10 @@ int Protocal::doGpsData(char *buf,GPSGATEDATA gpsData,int &nDataLen,int iTimeCou
 		}
 		//else m_pGps->wlog(gpsInfo.COMMADDR,"[Protocal]→[DB]-success to write DB");
 
-		if(pCurGPSClass->getResMsg(buf,gpsInfo))
+		int nLen = pCurGPSClass->getResMsg(buf,gpsInfo);
+		if(nLen>0)
 		{
+			gpsData.nDataLen = nLen;
 			nRet =writeGPSx(gpsData); 
 			if(nRet<1)
 			{
@@ -509,6 +512,14 @@ int Protocal::doGpsData(char *buf,GPSGATEDATA gpsData,int &nDataLen,int iTimeCou
 			//TODO: NEEDLOG
 			//		m_pGps->wlog(gpsInfo.COMMADDR,strTmp);
 			Write_Log(gpsInfo.COMMADDR,strTmp);
+
+			buf2HexStr_devx(buf,gpsData.nDataLen,strTmp,nLen_StrTmp);
+			Write_Log(gpsInfo.COMMADDR,strTmp);
+
+			buf2HexStr_devx(gpsData.pDatabuf,gpsData.nDataLen,strTmp,nLen_StrTmp);
+			Write_Log(gpsInfo.COMMADDR,strTmp);
+
+
 		}
 		else sprintf(strTmp,"starGps-当前报文不需要响应--SIM:%s",gpsInfo.COMMADDR);
 

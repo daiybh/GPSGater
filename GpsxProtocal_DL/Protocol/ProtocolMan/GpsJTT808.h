@@ -46,6 +46,7 @@ private:
 			this->bPaket = (wAttribute>>13)&0x1;
 			this->Rev=(wAttribute>>14)&3;
 		};
+		WORD getWordValue(){return msgBodyLen|(msgDecodeType<<10)|(bPaket<<13)|(Rev<<14);}
 		int msgBodyLen:10;
 		int msgDecodeType:3;
 		int bPaket:1;
