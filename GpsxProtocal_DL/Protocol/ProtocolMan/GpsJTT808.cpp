@@ -112,11 +112,11 @@ void buf2HexStr2(const char *pSrcbuf,char *pDestBuf,int nLen)
 long GpsJTT808::getGpsInfo( char *pSrcbuf,int nbufLen,GPSINFO &gpsInfo )
 {
 	//7E 01 02 00 07 01 57 00 00 00 01 00 05 72 6F 70 65 6E 74 65 21 7E	
-	char *pTempBuf = new char[nbufLen];
+	BYTE *pTempBuf = new BYTE[nbufLen];
 	memcpy(pTempBuf,pSrcbuf,nbufLen);
 
 	int nRet = 1;
-	int nBufferDataLen = max(strlen(pTempBuf),nbufLen);
+	int nBufferDataLen = max(strlen((char*)pTempBuf),nbufLen);
 	int iTrueLen=1;
 	for(;iTrueLen<nBufferDataLen;iTrueLen++){
 		if(pTempBuf[iTrueLen]== 0x7e)break;
@@ -126,13 +126,13 @@ long GpsJTT808::getGpsInfo( char *pSrcbuf,int nbufLen,GPSINFO &gpsInfo )
 		delete[] pTempBuf;	
 		return -1;
 	}
-	FanZhuanYi(pTempBuf,iTrueLen+2);
-	const char *pBuf =pTempBuf;
+	FanZhuanYi((char*)pTempBuf,iTrueLen+2);
+	const BYTE *pBuf =pTempBuf;
 	//pBuf = buf+1;
 	int nMask = *(pBuf+iTrueLen-1)&0xFF;
 
 	char pCheckCode;
-	int nCheckCode = getCheckCode_xor(pBuf,iTrueLen-1,&pCheckCode);
+	int nCheckCode = getCheckCode_xor((char*)pBuf,iTrueLen-1,&pCheckCode);
 	if(nMask !=nCheckCode)
 	{
 		delete[] pTempBuf;
@@ -147,18 +147,20 @@ long GpsJTT808::getGpsInfo( char *pSrcbuf,int nbufLen,GPSINFO &gpsInfo )
 	msgHead.msgBodyAttribute =nAttribute;//(pBuf[3]<<8)|pBuf[2];
 	
 
-	const char *pSim = pBuf+4;
+	const BYTE *pSim = pBuf+4;
 	sprintf(msgHead.sim,"%2.2x%2.2x%2.2x%2.2x%2.2x%2.2x",
 		pSim[0]&0xFF,pSim[1]&0xFF,pSim[2]&0xFF,pSim[3]&0xFF,pSim[4]&0xFF,pSim[5]&0xFF);
 	strcpy(gpsInfo.COMMADDR,msgHead.sim);
 	msgHead.msgSN = MAKEWORD(pBuf[11],pBuf[10]);//pBuf[11]<<8+pBuf[10];
+	int nHeadLen = 12;
 	if(msgHead.msgBodyAttribute.bPaket)
 	{
 		msgHead.msgPaket.msgTotalPakets = MAKEWORD(pBuf[13],pBuf[12]);;
 		msgHead.msgPaket.msgPaketIdx = MAKEWORD(pBuf[15],pBuf[14]);;
+		nHeadLen = 16;
 	}
 	//根据msgid 处理msgboday
-	nRet = diposMsgBody(msgHead,pBuf+16,&gpsInfo);
+	nRet = diposMsgBody(msgHead,pBuf+nHeadLen,&gpsInfo);
 	if(nRet==0)
 	{
 		//写成文件保留下来
@@ -203,23 +205,26 @@ BOOL GpsJTT808::getResMsg( char *strDestBuf,GPSINFO &gpsInfo )
 			pTempBuf[nCurpos++]=((msgHead.sim[i]-0x30)*16)|(msgHead.sim[i+1]-0x30);			
 		}
 
+
+		pTempBuf[11]=gpsInfo.SEQ[0];
+		pTempBuf[12]=gpsInfo.SEQ[1];
 		///header End//////////////////////////
 		//body
 		//0 		终端消息流水号word
 		//2			消息IDword
 		//4			结果byte
 
-		pTempBuf[11]=gpsInfo.SEQ[0];
-		pTempBuf[12]=gpsInfo.SEQ[1];
+		pTempBuf[13]=gpsInfo.SEQ[0];
+		pTempBuf[14]=gpsInfo.SEQ[1];
 		msgHead.msgBodyAttribute.msgBodyLen=0;
 		if(msgHead.msgID== 0x8001){
 			msgHead.msgBodyAttribute.msgBodyLen=5;
-			pTempBuf[13]=gpsInfo.SEQ[2];
-			pTempBuf[14]=gpsInfo.SEQ[3];	
-			pTempBuf[15]= 0;
-			nCurpos = 15;
+			pTempBuf[15]=gpsInfo.SEQ[2];
+			pTempBuf[16]=gpsInfo.SEQ[3];	
+			pTempBuf[17]= 0;
+			nCurpos = 17;
 		}else if(msgHead.msgID== 0x8100){
-			nCurpos=13;
+			nCurpos=15;
 			pTempBuf[nCurpos++]=0;
 			//726f70656e7465
 			char *pCode ="726f70656e7465";
@@ -229,7 +234,7 @@ BOOL GpsJTT808::getResMsg( char *strDestBuf,GPSINFO &gpsInfo )
 				pTempBuf[nCurpos++] =getbin(pCode[i])*16|getbin(pCode[i+1]);
 			}
 
-			msgHead.msgBodyAttribute.msgBodyLen=nCurpos-11;
+			msgHead.msgBodyAttribute.msgBodyLen=nCurpos-13;
 			nCurpos--;
 		}
 
@@ -249,13 +254,28 @@ BOOL GpsJTT808::getResMsg( char *strDestBuf,GPSINFO &gpsInfo )
 		//7e 0102 0007 015700000001 0007 726f70656e7465 23 7e			
 		//7e 8001 0005 015700000001 0007 0007800100     52 7e
 		//7e 8001 0005 015700000001 0007 010200         d7 7e
+		//7e 0100 002f 015728572436 002b 00111111373034303444522d3230413120202020202020202020202020526f706530303101d4c14147323031310000787e
+		//7e 8100 000a 015728572436 002b 0072 6f70656e7465 ec 7e
 		return nLen+1;
 
 	}
 	return 0;
 }
 
-int GpsJTT808::diposMsgBody( tagMsgHead msgHead,const char *pMsgBody,GPSINFO *gpsInfo )
+DWORD getDword(const BYTE *pMsgBody)
+{
+	DWORD dRet =0;
+	//dRet = ((pMsgBody[0])*4096)|((pMsgBody[1])*256)|((pMsgBody[2])*16)|((pMsgBody[3]));
+	DWORD d1,d2,d3,d4;
+	d1=d2=d3=d4 =0;
+	d1 = (pMsgBody[0]&0xff)*256*256*256;
+	d2 = (pMsgBody[1]&0xff)*256*256;
+	d3 = (pMsgBody[2]&0xff)*256;
+	d4 = (pMsgBody[3]&0xff);
+	dRet = d1|d2|d3|d4;
+	return dRet;
+}
+int GpsJTT808::diposMsgBody( tagMsgHead msgHead,const BYTE *pMsgBody,GPSINFO *gpsInfo )
 {
 	int nRet = 0;
 	switch(msgHead.msgID){
@@ -263,35 +283,93 @@ int GpsJTT808::diposMsgBody( tagMsgHead msgHead,const char *pMsgBody,GPSINFO *gp
 			//0 鉴权码 string 终端重连后上传鉴权码
 			//需要平台应答
 			gpsInfo->nMsgID =MSG_LOGIN;
-			gpsInfo->bValid=false;			
-			/*
-			回复需要：
-			终端消息流水号word
-			消息IDword
-			结果byte
-			*/
 			sprintf(gpsInfo->PreFix,"%d",0x8001);
-			gpsInfo->SEQ[0] = msgHead.msgSN/256;
-			gpsInfo->SEQ[1] = msgHead.msgSN;
-
-			gpsInfo->SEQ[2] = msgHead.msgID/256;
-			gpsInfo->SEQ[3] = msgHead.msgID;
 			nRet = 1;
 			break;
 		case 0x0100:
 			//7e0100002f015728572436000100111111373034303444522d3230413120202020202020202020202020526f706530303101d4c14147323031310000527e
 			gpsInfo->nMsgID =MSG_LOGIN;
-			gpsInfo->bValid=false;	
-
 			sprintf(gpsInfo->PreFix,"%d",0x8100);
-
-			gpsInfo->SEQ[0] = msgHead.msgSN/256;
-			gpsInfo->SEQ[1] = msgHead.msgSN;
-
-			gpsInfo->SEQ[2] = msgHead.msgID/256;
-			gpsInfo->SEQ[3] = msgHead.msgID;
-
 			nRet =1;
+			break;
+		case 0x0200:
+			{
+			//位置基本信息，位置附加信息项列表
+				/*
+					01 2345 6789 012345678901 2345 67890123 45678901 23456789 01234567 8901 2345 6789 012345678901 23 45 6789 0123 4567 8901 23 45
+					7e 0200 0026 015728572436 0172 00000000 00000003 01614058 06c2e200 00e4 0000 0000 130906100802 01 04 0000 0000 0302 0000 d7 7e
+												   0 1 2 3  4 5 6 7  8 9 0 1  2 3 4 5  6 7  8 9  0 1  2 3 4 5 6 7  8  9  0 1  2 3  4 5  6 7  8  9  0123 456789012345 67 89 0123 4567 8901 2345 67 89
+				*/
+				struct LocInfo 
+				{
+					DWORD alarmFlag;
+					DWORD status;
+					DWORD latitude;
+					DWORD longitude;
+					WORD altitude;
+					WORD speed;
+					WORD direct;
+					char time[6];
+					void copy2GpsInfo(GPSINFO *gpsinfo)
+					{
+						gpsinfo->nWarnFlag = alarmFlag;
+						sprintf(gpsinfo->Latitude,"%d.%d",latitude/1000000,latitude%1000000);
+
+						sprintf(gpsinfo->Longitude,"%d.%d",longitude/1000000,longitude%1000000);
+						sprintf(gpsinfo->Altitude,"%d",altitude);
+						sprintf(gpsinfo->Speed,"%d",speed);
+						sprintf(gpsinfo->Heading,"%d",direct);
+						sprintf(gpsinfo->Time,"20%s",time);
+					}
+				};
+				LocInfo locationInfo;
+				//locationInfo.alarmFlag = ((pMsgBody[0])*4096)|((pMsgBody[1])*256)|((pMsgBody[2])*16)|((pMsgBody[3]));
+				locationInfo.alarmFlag = getDword(pMsgBody);
+
+				
+				//locationInfo.status = ((pMsgBody[4])*4096)|((pMsgBody[5])*256)|((pMsgBody[6])*16)|((pMsgBody[7]));
+				locationInfo.status = getDword(pMsgBody+4);
+				//locationInfo.latitude = ((pMsgBody[8])*4096)|((pMsgBody[9])*256)|((pMsgBody[10])*16)|((pMsgBody[11]));
+				locationInfo.latitude =getDword(pMsgBody+8);				
+				//locationInfo.longitude = ((pMsgBody[12])*4096)|((pMsgBody[13])*256)|((pMsgBody[14])*16)|((pMsgBody[15]));
+				locationInfo.longitude =getDword(pMsgBody+12);				
+				
+				locationInfo.altitude = ((pMsgBody[16])*256)|((pMsgBody[17]));
+				locationInfo.speed = ((pMsgBody[18])*256)|((pMsgBody[19]));
+				locationInfo.direct =((pMsgBody[20])*256)|((pMsgBody[21]));
+
+				const BYTE *pTime = pMsgBody+22;
+				sprintf(locationInfo.time,"%2.2x%2.2x%2.2x%2.2x%2.2x%2.2x",
+					pTime[0]&0xFF,pTime[1]&0xFF,pTime[2]&0xFF,pTime[3]&0xFF,pTime[4]&0xFF,pTime[5]&0xFF);
+
+				locationInfo.copy2GpsInfo(gpsInfo);
+				gpsInfo->bValid = (locationInfo.status&0x2);
+				
+				const BYTE *pAddtionBuf = pMsgBody+28;
+				struct AddtionInfo
+				{
+					int addtionID;
+					int addtionLen;
+				};
+				AddtionInfo addtionInfo;
+				addtionInfo.addtionID = pAddtionBuf[0];
+
+				addtionInfo.addtionLen = pAddtionBuf[1];
+				switch(addtionInfo.addtionID)
+				{
+				case 0x01:
+					//c车上的里程数
+					break;
+				default:
+					break;
+				}
+
+				//gpsInfo->Latitude;
+				
+
+
+
+			}
 			break;
 		default:
 			{
@@ -299,6 +377,16 @@ int GpsJTT808::diposMsgBody( tagMsgHead msgHead,const char *pMsgBody,GPSINFO *gp
 
 			}
 			break;
+	}
+	if(gpsInfo->nMsgID==MSG_LOGIN){
+
+		gpsInfo->bValid=false;	
+		gpsInfo->SEQ[0] = msgHead.msgSN/256;
+		gpsInfo->SEQ[1] = msgHead.msgSN;
+
+		gpsInfo->SEQ[2] = msgHead.msgID/256;
+		gpsInfo->SEQ[3] = msgHead.msgID;
+		nRet = 1;
 	}
 	return nRet;
 }

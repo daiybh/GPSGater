@@ -59,5 +59,5 @@ private:
 		WORD msgSN;
 		tagMsgPaket msgPaket;
 	};
-	int diposMsgBody(tagMsgHead msgHead,const char *pMsgBody,GPSINFO *gpsInfo);
+	int diposMsgBody(tagMsgHead msgHead,const BYTE *pMsgBody,GPSINFO *gpsInfo);
 };
