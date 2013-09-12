@@ -96,6 +96,7 @@ void testJTT808()
 	strcpy(pbuf,"7E 01 02 00 07 01 57 00 00 00 01 00 06 72 6F 70 65 6E 74 65 22 7E");
 	strcpy(pbuf,"7e 01 02 00 07 01 57 00 00 00 01 0d ad 72 6f 70 65 6e 74 65 84 7e");
 	strcpy(pbuf,"7e01000023015728572436000e00111111373034303444522d3230413120526f706530303101d4c14147323031310000517e");
+	strcpy(pbuf,"7e 0200 0026 015728572436 0172 00000000 00000003 01614058 06c2e200 00e4 0000 0000 130906100802 01 04 0000 0000 0302 0000 d7 7e");
 	//7e 0102 0007 015700000001 0dad 726f70656e7465 84 7e
 	printf("%s\r\n",pbuf);
 	char *pbin=NULL;
@@ -110,11 +111,11 @@ void xor2(){
 	for(int i=0;i<strlen(x);i++){
 		xorv =xorv^(x[i]-0x30);
 	}
-	printf("%x",xorv);
+	printf("%x\r\n",xorv);
 }
 void xor(){
 	xor2();
-	int x[20];
+	char x[20];
 	ZeroMemory(x,20);
 	int i =0;
 	//8001 0005 015700000001 0007 0007800100     52
@@ -142,10 +143,46 @@ void xor(){
 	for(int y=0;y<i;y++){
 		xorv =xorv^x[y];
 	}
-	printf("%x",xorv);
+	BYTE B[10];
+	*(B) = 0x12345;
+	ZeroMemory(B,10);
+	int yyy = sizeof(WORD);
+	memcpy(B,x,sizeof(DWORD));
+	
+	printf("%x--%x\r\n",xorv&0xff,(*((DWORD*)(B)) ));
+}
+DWORD getDword(char *pMsgBody)
+{
+	DWORD dRet =0;
+	DWORD d1,d2,d3,d4;
+	d1=d2=d3=d4 =0;
+	d1 = pMsgBody[0]*256*256*256;
+	d2 = pMsgBody[1]*256*256;
+	d3 = pMsgBody[2]*256;
+	d4 = pMsgBody[3];
+	dRet = ((pMsgBody[0])*4096)|((pMsgBody[1])*256)|((pMsgBody[2])*16)|((pMsgBody[3]));
+	dRet = d1|d2|d3|d4;
+	return dRet;
+}
+void testMod(char *pSrc)
+{
+	char *pBin = NULL;
+	int nBinLen = HexToBin(pSrc,&pBin);
+	nBinLen = 1;
+	DWORD dW = getDword(pBin);
+}
+void testMod()
+{
+	//00000003 01614058 06c2e200
+	//status   JingDu   WeiDu
+	testMod("00000003");
+	testMod("01614058");
+	testMod("06c2e200");
 }
 int _tmain(int argc, TCHAR* argv[], TCHAR* envp[])
-{xor();
+{
+	testMod();
+	xor();
 	google::InitGoogleLogging(argv[0]);
 	google::SetLogDestination(0,".//nmlog//");
 	//FLAGS_log_dir=".";
