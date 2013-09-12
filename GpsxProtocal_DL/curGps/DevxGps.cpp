@@ -485,7 +485,6 @@ int Protocal::doGpsData(char *buf,GPSGATEDATA gpsData,int &nDataLen,int iTimeCou
 		//normalÊý¾Ý
 
 		int nRet = writeDataBase(gpsInfo);
-		nRet =0;
 		if(nRet<1) 
 		{
 			sprintf(strTmp,"[Protocal]¡ú[DB]-Fail to write DB.ret=%d,commandr=%s",nRet,gpsInfo.COMMADDR);
