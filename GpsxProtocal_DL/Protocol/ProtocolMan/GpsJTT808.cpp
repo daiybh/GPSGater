@@ -346,6 +346,9 @@ int GpsJTT808::diposMsgBody( tagMsgHead msgHead,const BYTE *pMsgBody,GPSINFO *gp
 
 				locationInfo.copy2GpsInfo(gpsInfo);
 				gpsInfo->bValid = (locationInfo.status&0x2);
+
+				//8-9:  00£º¿Õ³µ£»01£º°ëÔØ£»10£º±£Áô£»11£ºÂúÔØ
+				gpsInfo->Noload =(locationInfo.status>>7 )&0x3;
 				
 				const BYTE *pAddtionBuf = pMsgBody+28;
 				struct AddtionInfo

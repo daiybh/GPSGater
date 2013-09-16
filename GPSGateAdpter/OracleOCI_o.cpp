@@ -430,7 +430,8 @@ int COracleOCI_o::CreateTable(struct tm* pCurGPSTime)
 				   \"PROID\" NUMBER(11) NULL ,\
 				   \"TASKID\" NUMBER(11) NULL ,\
 				   \"VAL1\" NUMBER(11) NULL ,\
-				   \"VAL2\" NUMBER(11) NULL )";
+				   \"VAL2\" NUMBER(11) NULL ,\
+				   \"NOLOAD\" NUMBER(3) NULL)";
 	m_tm_TableNameTime.tm_year = pCurGPSTime->tm_year;
 	m_tm_TableNameTime.tm_mon = pCurGPSTime->tm_mon;
 	m_tm_TableNameTime.tm_mday = pCurGPSTime->tm_mday;
@@ -972,10 +973,10 @@ int COracleOCI_o::InsertData( const GPSINFO *pGpsInfo ,double doubleLongitude,do
 	BOOL bSim	=	pGpsInfo->nDevID&0x0100;
 	BOOL bTid	=	pGpsInfo->nDevID&0x0200;
 
-	sprintf(m_strInsertDataSQL,"Insert into GPS_%s (SIM,tid,GPS_DATE,RECV_DATE,LNG,LAT,VEO,DIRECT,TASKID,ISTATE) \
+	sprintf(m_strInsertDataSQL,"Insert into GPS_%s (SIM,tid,GPS_DATE,RECV_DATE,LNG,LAT,VEO,DIRECT,TASKID,ISTATE,NOLOAD) \
 							   Values('%s','%s',  TO_DATE('%s', 'YYYY-MM-DD HH24:MI:SS'),    \
 							   TO_DATE('%s', 'YYYY-MM-DD HH24:MI:SS'),     \
-							   %.5f, %.5f, %s, %s,%d,%d)",
+							   %.5f, %.5f, %s, %s,%d,%d,%d)",
 							   m_strDate,
 							   bSim?pGpsInfo->COMMADDR:"",
 							   bSim?"":pGpsInfo->COMMADDR,
@@ -984,7 +985,7 @@ int COracleOCI_o::InsertData( const GPSINFO *pGpsInfo ,double doubleLongitude,do
 							  doubleLongitude,doubleLatitude,
 							  pGpsInfo->Speed,
 							  (pGpsInfo->Heading),
-							  hex2dec(pGpsInfo->VERFYCODE),iState);
+							  hex2dec(pGpsInfo->VERFYCODE),iState,pGpsInfo->Noload);
 	
 	return InsertData(m_strInsertDataSQL);
 }
