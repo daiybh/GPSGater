@@ -181,10 +181,25 @@ void testMod()
 }
 int _tmain(int argc, TCHAR* argv[], TCHAR* envp[])
 {
+	int nTaskid=0x7FFFFFFF;
+	int nUdp = 121;
+	int nType = nTaskid | ((nUdp&0x01)<<31);
+	printf("ntaskid=%x %d udp=%d  ntype=%x,%d",nTaskid,nTaskid,nUdp,nType,nType);
+
+	BOOL bUdp=0;
+	bUdp = (nType>>31)&0x01;
+	int nTaskID = nType&0x7FFFFFFF;
+	printf("\r\n taskid=%x %d udp=%d  \r\n",nTaskID,nTaskID,bUdp);
+
+	system("pause");
 	testMod();
 	xor();
+	FLAGS_log_dir="D:\\NMLOG2\\";
 	google::InitGoogleLogging(argv[0]);
-	google::SetLogDestination(0,".//nmlog//");
+	//google::SetLogDestination(0,"info.log");
+	//google::SetLogDestination(google::GLOG_ERROR,"error.log");
+	google::SetLogFilenameExtension("log");
+	google::FlushLogFiles(google::GLOG_INFO);
 	//FLAGS_log_dir=".";
 	LOG(INFO)<<"hello glog";
 	LOG(ERROR)<<"ERR: glog";

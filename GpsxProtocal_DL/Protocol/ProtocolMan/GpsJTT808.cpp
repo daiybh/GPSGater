@@ -299,6 +299,7 @@ int GpsJTT808::diposMsgBody( tagMsgHead msgHead,const BYTE *pMsgBody,GPSINFO *gp
 					01 2345 6789 012345678901 2345 67890123 45678901 23456789 01234567 8901 2345 6789 012345678901 23 45 6789 0123 4567 8901 23 45
 					7e 0200 0026 015728572436 0172 00000000 00000003 01614058 06c2e200 00e4 0000 0000 130906100802 01 04 0000 0000 0302 0000 d7 7e
 												   0 1 2 3  4 5 6 7  8 9 0 1  2 3 4 5  6 7  8 9  0 1  2 3 4 5 6 7  8  9  0 1  2 3  4 5  6 7  8  9  0123 456789012345 67 89 0123 4567 8901 2345 67 89
+				    7e 0200 0026 015728572436 01db 00000000 00000003 01614058 06c2e200 00e4 0000 0000 130906100802 010400000000030200007d027e
 				*/
 				struct LocInfo 
 				{
@@ -320,6 +321,7 @@ int GpsJTT808::diposMsgBody( tagMsgHead msgHead,const BYTE *pMsgBody,GPSINFO *gp
 						sprintf(gpsinfo->Speed,"%d",speed);
 						sprintf(gpsinfo->Heading,"%d",direct);
 						sprintf(gpsinfo->Time,"20%s",time);
+						gpsinfo->Time[19] = 0x01;
 					}
 				};
 				LocInfo locationInfo;

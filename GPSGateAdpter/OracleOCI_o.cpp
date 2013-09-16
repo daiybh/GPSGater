@@ -65,7 +65,8 @@ char * changeTime(const char *pGPSTime,CTime &GpsTime)
 
 	}
 	CTime tim(nYear,nMonth,nDay,nHour,nMinute,nSecond);
-	tim +=CTimeSpan(0,8,0,0);
+	if(pGPSTime[19]!=0x01)
+		tim +=CTimeSpan(0,8,0,0);
 
 	sprintf(g_TimeBuf,"%d-%d-%d %d:%d:%d",
 		tim.GetYear(),//年
@@ -75,16 +76,6 @@ char * changeTime(const char *pGPSTime,CTime &GpsTime)
 		tim.GetMinute(),//分
 		tim.GetSecond());//秒
 	GpsTime = tim;
-	return g_TimeBuf;
-
-	sprintf(g_TimeBuf,"%c%c%c%c-%c%c-%c%c %c%c:%c%c:%c%c",
-		pGPSTime[0],pGPSTime[1],pGPSTime[2],pGPSTime[3],//年
-		pGPSTime[4],pGPSTime[5],//月
-		pGPSTime[6],pGPSTime[7],//日
-		pGPSTime[8],pGPSTime[9],//时
-		pGPSTime[10],pGPSTime[11],//分
-		pGPSTime[12],pGPSTime[13]);//秒
-
 	return g_TimeBuf;
 }
 
@@ -462,6 +453,9 @@ sprintf(strSQL,"create table \"OBD_DETAIL%s\" (TID        VARCHAR2(48),\
 }
 int COracleOCI_o::_DoCreateTable(const char*createTableSQL)
 {
+	OutputDebugString(createTableSQL);
+
+	WriteLog(LOGNAME,logLevelError,createTableSQL);
 	sword status;
 	OCIBind  *bnd1p = (OCIBind *) 0;             /* the first bind handle */
 	OCIBind  *bnd2p = (OCIBind *) 0;             /* the second bind handle */
@@ -656,8 +650,17 @@ int IsValidData(const GPSINFO *pGpsInfo)
 #define MIN_TIME -(60*60*24)
 BOOL NeedCreateNewTable(struct tm  preTableGpsTime,struct tm * curGpsTime)
 {	
-	if(preTableGpsTime.tm_mday != curGpsTime->tm_mday)
+	if(preTableGpsTime.tm_mday != curGpsTime->tm_mday 
+		&& preTableGpsTime.tm_mon!=curGpsTime->tm_mon
+		&&preTableGpsTime.tm_year !=curGpsTime->tm_year)
+	{
+		CString strLog;
+		strLog.Format(_T("pre:[%d-%d-%d] cur:[%d-%d-%d]"),preTableGpsTime.tm_year,preTableGpsTime.tm_mon,preTableGpsTime.tm_mday,
+			curGpsTime->tm_year,curGpsTime->tm_mon,curGpsTime->tm_mday);
+		WriteLog(LOGNAME,logLevelInfo,strLog);
+		OutputDebugString(strLog);
 		return TRUE;
+	}
 	return FALSE;
 }
 BOOL NeedCreateNewTable(struct tm * tTableTime)
