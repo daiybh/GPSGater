@@ -171,7 +171,7 @@ long GpsJTT808::getGpsInfo( char *pSrcbuf,int nbufLen,GPSINFO &gpsInfo )
 		WriteLog(_T("jtt808"),logLevelError,pdestBuf);
 	}
 	delete[] pTempBuf;
-	return 1;
+	return nRet>0 ?(iTrueLen+1):0;
 }
 
 int getbin(int x)
@@ -278,12 +278,14 @@ DWORD getDword(const BYTE *pMsgBody)
 int GpsJTT808::diposMsgBody( tagMsgHead msgHead,const BYTE *pMsgBody,GPSINFO *gpsInfo )
 {
 	int nRet = 0;
+	gpsInfo->nMsgID=MSG_NULL;
 	switch(msgHead.msgID){
 		case 0x0102:
 			//0 鉴权码 string 终端重连后上传鉴权码
 			//需要平台应答
 			gpsInfo->nMsgID =MSG_LOGIN;
 			sprintf(gpsInfo->PreFix,"%d",0x8001);
+			gpsInfo->bNeedWriteDataBase=false;
 			nRet = 1;
 			break;
 		case 0x0100:
@@ -301,6 +303,7 @@ int GpsJTT808::diposMsgBody( tagMsgHead msgHead,const BYTE *pMsgBody,GPSINFO *gp
 												   0 1 2 3  4 5 6 7  8 9 0 1  2 3 4 5  6 7  8 9  0 1  2 3 4 5 6 7  8  9  0 1  2 3  4 5  6 7  8  9  0123 456789012345 67 89 0123 4567 8901 2345 67 89
 				    7e 0200 0026 015728572436 01db 00000000 00000003 01614058 06c2e200 00e4 0000 0000 130906100802 010400000000030200007d027e
 				*/
+				gpsInfo->nMsgID = MSG_LOCATION;
 				struct LocInfo 
 				{
 					DWORD alarmFlag;
@@ -370,11 +373,11 @@ int GpsJTT808::diposMsgBody( tagMsgHead msgHead,const BYTE *pMsgBody,GPSINFO *gp
 				}
 
 				//gpsInfo->Latitude;
-				
-
-
-
+				nRet = 1;
 			}
+			break;
+		case 0x002:
+			nRet = 1;
 			break;
 		default:
 			{

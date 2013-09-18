@@ -102,7 +102,7 @@ int Socket_IOCP::sendData( const char *pData,int nDataSize,const char *pAddr,int
 	return 0;
 }
 
-int Socket_IOCP::sendData( const GPSGATEDATA *pGpsGateData )
+int Socket_IOCP::sendData( const GPSGATEDATA *pGpsGateData,char *pDatabuf,int nDataLen)
 {
 
 	BYTE *pcur =(BYTE*) pGpsGateData->curSocketInfo.tcpSocketHandle;
@@ -110,7 +110,7 @@ int Socket_IOCP::sendData( const GPSGATEDATA *pGpsGateData )
 	
 	return m_pGPS_Iocp->SendData(pOld,
 		pcur,
-		(BYTE*)pGpsGateData->pDatabuf,pGpsGateData->nDataLen);
+		(BYTE*)pDatabuf,nDataLen);
 	return 1;
 }
 

@@ -655,11 +655,6 @@ BOOL NeedCreateNewTable(struct tm  preTableGpsTime,struct tm * curGpsTime)
 		&& preTableGpsTime.tm_mon!=curGpsTime->tm_mon
 		&&preTableGpsTime.tm_year !=curGpsTime->tm_year)
 	{
-		CString strLog;
-		strLog.Format(_T("pre:[%d-%d-%d] cur:[%d-%d-%d]"),preTableGpsTime.tm_year,preTableGpsTime.tm_mon,preTableGpsTime.tm_mday,
-			curGpsTime->tm_year,curGpsTime->tm_mon,curGpsTime->tm_mday);
-		WriteLog(LOGNAME,logLevelInfo,strLog);
-		OutputDebugString(strLog);
 		return TRUE;
 	}
 	return FALSE;
@@ -714,7 +709,7 @@ int COracleOCI_o::WriteData( const GPSINFO *pGpsInfo )
 	nRet = 0;
 
 
-	CTime gpsTime;
+	CTime gpsTime=CTime::GetCurrentTime();
 	CTime time_Servers=CTime::GetCurrentTime();
 	CStringA str_time_Servers (time_Servers.Format(_T("%Y-%m-%d %H:%M:%S")));
 
@@ -795,7 +790,17 @@ int COracleOCI_o::WriteData( const GPSINFO *pGpsInfo )
 			gpsTime.GetLocalTm(&pCurGpsTm);
 
 			if(NeedCreateNewTable(m_tm_TableNameTime,&pCurGpsTm))
+			{
+
+				CString strLog;
+				strLog.Format(_T("sim:%s-->NeedCreateTable-->pre:[%d-%d-%d] cur:[%d-%d-%d]"),
+					pGpsInfo->COMMADDR,
+					m_tm_TableNameTime.tm_year,m_tm_TableNameTime.tm_mon,m_tm_TableNameTime.tm_mday,
+					pCurGpsTm.tm_year,pCurGpsTm.tm_mon,pCurGpsTm.tm_mday);
+				WriteLog(LOGNAME,logLevelInfo,strLog);
+				OutputDebugString(strLog);
 				CreateTable(&pCurGpsTm);
+			}
 
 			//ISTATE 0 表示正常 1表示不正常 2 表示漂移
 			int iState = 0;
@@ -987,6 +992,23 @@ int COracleOCI_o::InsertData( const GPSINFO *pGpsInfo ,double doubleLongitude,do
 							  (pGpsInfo->Heading),
 							  hex2dec(pGpsInfo->VERFYCODE),iState,pGpsInfo->Noload);
 	
+	if(InsertData(m_strInsertDataSQL)==1)
+		return 1;
+
+	sprintf(m_strInsertDataSQL,"Insert into GPS_%s (SIM,tid,GPS_DATE,RECV_DATE,LNG,LAT,VEO,DIRECT,TASKID,ISTATE) \
+							   Values('%s','%s',  TO_DATE('%s', 'YYYY-MM-DD HH24:MI:SS'),    \
+							   TO_DATE('%s', 'YYYY-MM-DD HH24:MI:SS'),     \
+							   %.5f, %.5f, %s, %s,%d,%d)",
+							   m_strDate,
+							   bSim?pGpsInfo->COMMADDR:"",
+							   bSim?"":pGpsInfo->COMMADDR,
+							   s_RecvTime,
+							   str_CurTime,
+							   doubleLongitude,doubleLatitude,
+							   pGpsInfo->Speed,
+							   (pGpsInfo->Heading),
+							   hex2dec(pGpsInfo->VERFYCODE),iState);
+
 	return InsertData(m_strInsertDataSQL);
 }
 int COracleOCI_o::InsertData(char *pInsertDataSQL)

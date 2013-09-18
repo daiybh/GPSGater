@@ -480,11 +480,11 @@ int GPS_Iocp::SendData(BYTE *pOldClient, BYTE *pClient,const BYTE*pBuf,DWORD dwB
 	//²»ÓÃÉ¾³ýOldClient
 	CClientContext *pClientContext = (CClientContext *) pClient;
 	BOOL bRtn = pClientMgr->FindClientAndLock(pClientContext);
-	int nRet = -1;
+	int nRet = 1;
 	if(bRtn)
 	{
 		nRet = pClientContext->SendData(pBuf,dwBufLen);
 		pClientMgr->UnlockClient(pClientContext);
 	}
-	return (nRet==0)?1:0;
+	return (nRet==0)?1:(-nRet);
 }

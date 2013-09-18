@@ -112,7 +112,7 @@ DWORD WINAPI threadGetGPSData(LPVOID lpParameter)
 	while (TRUE)
 	{
 		ZeroMemory(buf,nlen);
-		int nRet = Gdev.startGPS(buf,nlen);
+		int nRet = Gdev.startGPS(buf,nlen,pGpsGateDataBuf,100);
 
 		//在这里获取处理命令来处理
 		ZeroMemory(gpsCommand,sizeof(GPSCommand));
@@ -248,11 +248,11 @@ long Protocal::SynchronGPSData(GPSClass **pCurGPSClass,char *pInData,int nLenInD
 
 
 //GPSGATEDATA gpsData
-long Protocal::readGPS(GPSGATEDATA &gpsData)
+long Protocal::readGPS( GPSGATEDATA &gpsData,char *buf )
 {
 	long nret = 0;
 	
-	nret = getGPS(&gpsData);
+	nret = getGPS(&gpsData,buf);
 	return nret;
 }
 
@@ -382,7 +382,7 @@ BOOL Protocal::writeDataBase( GPSINFO gpsInfo )
 //	return 0;
 //
 //}
-long Protocal::startGPS(char *buf,int nlen)
+long Protocal::startGPS( char *buf,int nlen,char *pResBuf,int nResBufLen )
 {
 	long nret = 0;
 	GPSGATEDATA  gpsData;	
@@ -391,7 +391,7 @@ long Protocal::startGPS(char *buf,int nlen)
 	gpsData.nDataLen = nlen;
 	int ntotalBufLen = 0;
 
-	if((ntotalBufLen = readGPS(gpsData)) <1) 
+	if((ntotalBufLen = readGPS(gpsData,buf)) <1) 
 	{
 		return -500;
 	//	return returnStar(0,"",strFilename);
@@ -404,10 +404,10 @@ long Protocal::startGPS(char *buf,int nlen)
 	do{
 		if(pDataBuf>=pEndBuf)
 			break;
-		if(gpsData.nDataLen<1)
+		if(gpsData.nDataLen<3)
 			break;
 		int nDataLen =0;
-		if(doGpsData(pDataBuf,gpsData,nDataLen,iTimeCount)==-2002)
+		if(doGpsData(pDataBuf,gpsData,nDataLen,iTimeCount,pResBuf,nResBufLen)==-2002)
 			break;
 
 		gpsData.nDataLen =gpsData.nDataLen-nDataLen;
@@ -417,7 +417,7 @@ long Protocal::startGPS(char *buf,int nlen)
 	}while(1);
 	return 1;
 }
-int Protocal::doGpsData(char *buf,GPSGATEDATA gpsData,int &nDataLen,int iTimeCount)
+int Protocal::doGpsData( char *buf,GPSGATEDATA gpsData,int &nDataLen,int iTimeCount,char *pResBuf,int nResBufLen )
 {
 // 	strcpy(buf,"*HQ,6120108162,V1,044541,A,2624.7708,N,10317.3470,E,0.00,354,270312,FFFFFBFF#");
 // 	sprintf(strTmp,"[GPS]→[Console]-nDataLen:%d",gpsData.nDataLen);
@@ -430,6 +430,7 @@ int Protocal::doGpsData(char *buf,GPSGATEDATA gpsData,int &nDataLen,int iTimeCou
 	int nLen_StrTmp=1024;
 	memset(&gpsInfo,0x00,sizeof(GPSINFO));
 
+	gpsInfo.bNeedWriteDataBase=true;
 	GPSClass *pCurGPSClass=NULL;
 	gpsData.pCurGPSClass =NULL;
 	nDataLen =0;
@@ -447,26 +448,6 @@ int Protocal::doGpsData(char *buf,GPSGATEDATA gpsData,int &nDataLen,int iTimeCou
 	(*g_dwMapCount)++;
 	//nret 就是实际使用数据长度
 	nDataLen = nret;
-/*	{
-		sprintf(strTmp,"recvgpsData,commandr=%s,valid=%d,datalen=%d",gpsInfo.COMMADDR,gpsInfo.bValid,gpsData.nDataLen);
-		char *pLogName = LOG_NAME;
-		if(gpsInfo.COMMADDR[0]!='\0')
-			pLogName = gpsInfo.COMMADDR;
-		Write_Log(pLogName,strTmp);				
-		buf2HexStr_devx(buf,gpsData.nDataLen,strTmp,nLen_StrTmp);
-		Write_Log(pLogName,strTmp);
-	}
-	
-	if(!gpsInfo.bValid)
-	{
-		char *pLogName = LOG_NAME;
-		if(gpsInfo.COMMADDR[0]!='\0')
-			pLogName = gpsInfo.COMMADDR;
-		Write_Log(pLogName,"startGPS-gpsInfo.bValid=false");		
-		buf2HexStr_devx(buf,strTmp,gpsData.nDataLen);
-		Write_Log(pLogName,strTmp);
-	}
-	/**/
 	gpsData.pCurGPSClass = pCurGPSClass;
 	//根据报文类型来决定下面的操作
 	if(gpsInfo.nMsgID == MSG_LOGIN)
@@ -480,32 +461,42 @@ int Protocal::doGpsData(char *buf,GPSGATEDATA gpsData,int &nDataLen,int iTimeCou
 		//	m_pGps->wlog(gpsInfo.COMMADDR,strTmp);
 		Write_Log(gpsInfo.COMMADDR,strTmp);
 	}
-	
+
+	buf2HexStr_devx(buf,gpsData.nDataLen,strTmp,nLen_StrTmp);
+	Write_Log("ts",strTmp);
+	if(gpsInfo.nMsgID== MSG_NULL)	
+	{
+		buf2HexStr_devx(buf,gpsData.nDataLen,strTmp,nLen_StrTmp);
+		Write_Log("msgNULL",strTmp);
+	}
+	else
 	{
 		//normal数据
-
-		int nRet = writeDataBase(gpsInfo);
-		if(nRet<1) 
+		if(gpsInfo.bNeedWriteDataBase)
 		{
-			sprintf(strTmp,"[Protocal]→[DB]-Fail to write DB.ret=%d,commandr=%s",nRet,gpsInfo.COMMADDR);
-			//TODO: NEEDLOG
-			//		m_pGps->wlog(gpsInfo.COMMADDR,strTmp);	
+			int nRet = writeDataBase(gpsInfo);
+			if(nRet<1) 
+			{
+				sprintf(strTmp,"[Protocal]→[DB]-Fail to write DB.ret=%d,commandr=%s",nRet,gpsInfo.COMMADDR);
+				//TODO: NEEDLOG
+				//		m_pGps->wlog(gpsInfo.COMMADDR,strTmp);	
 
-			Write_Log(strTmp);
-			Write_Log(gpsInfo.COMMADDR,strTmp);		
-			buf2HexStr_devx(buf,gpsData.nDataLen,strTmp,nLen_StrTmp);
-			Write_Log(gpsInfo.COMMADDR,strTmp);
+				Write_Log(strTmp);
+				Write_Log(gpsInfo.COMMADDR,strTmp);		
+				buf2HexStr_devx(buf,gpsData.nDataLen,strTmp,nLen_StrTmp);
+				Write_Log(gpsInfo.COMMADDR,strTmp);
+			}
+			//else m_pGps->wlog(gpsInfo.COMMADDR,"[Protocal]→[DB]-success to write DB");
 		}
-		//else m_pGps->wlog(gpsInfo.COMMADDR,"[Protocal]→[DB]-success to write DB");
 
-		int nLen = pCurGPSClass->getResMsg(buf,gpsInfo);
+		int nLen = pCurGPSClass->getResMsg(pResBuf,gpsInfo);
 		if(nLen>0)
 		{
-			gpsData.nDataLen = nLen;
-			nRet =writeGPSx(gpsData); 
+			//gpsData.nDataLen = nLen;
+			int nRet =writeGPSx(gpsData,pResBuf,nLen); 
 			if(nRet<1)
 			{
-				sprintf(strTmp,"ret [Console]→[GPS]%s-失败.%d",gpsData.pDatabuf,nRet);			
+				sprintf(strTmp,"ret [Console]→[GPS]%s-失败.%x",gpsData.pDatabuf,nRet);			
 			}
 			else sprintf(strTmp,"ret [Console]→[GPS]-%s",gpsData.pDatabuf);			
 			//TODO: NEEDLOG
@@ -515,12 +506,13 @@ int Protocal::doGpsData(char *buf,GPSGATEDATA gpsData,int &nDataLen,int iTimeCou
 			buf2HexStr_devx(buf,gpsData.nDataLen,strTmp,nLen_StrTmp);
 			Write_Log(gpsInfo.COMMADDR,strTmp);
 
-			buf2HexStr_devx(gpsData.pDatabuf,gpsData.nDataLen,strTmp,nLen_StrTmp);
+			buf2HexStr_devx(pResBuf,nLen,strTmp,nLen_StrTmp);
 			Write_Log(gpsInfo.COMMADDR,strTmp);
-
-
 		}
-		else sprintf(strTmp,"starGps-当前报文不需要响应--SIM:%s",gpsInfo.COMMADDR);
+		else{
+			sprintf(strTmp,"starGps-当前报文不需要响应--SIM:%s",gpsInfo.COMMADDR);
+			//Write_Log(gpsInfo.COMMADDR,strTmp);
+		}
 
 	}
 	return nret;	
@@ -591,7 +583,7 @@ long Protocal::Process_Command(GPSCommand *gpsCommand,char *pGpsDataBuf)
 
 			if(gpsCommand->commandType <cmdType_ToService)
 			{
-				nRet = writeGPSx(gpsData);	
+				nRet = writeGPSx(gpsData,gpsData.pDatabuf,gpsData.nDataLen);	
 				if(nRet<1)
 				{
 					sprintf(strTmp,"[Console]→[GPS]%s-失败",gpsData.pDatabuf);			
@@ -622,12 +614,12 @@ long Protocal::Process_Command(GPSCommand *gpsCommand,char *pGpsDataBuf)
 	pGpsGateData->pDatabuf,//需要单独构造
 	pGpsGateData->nDataLen//需要单独构造
 */
-long Protocal::writeGPSx(GPSGATEDATA gpsData)
+long Protocal::writeGPSx(GPSGATEDATA gpsData,char *buf,int nLen)
 {
 	long nret = 0;
 	
 	//	nret = writeGPS(buf,addr,port);
-	nret = writeGPS(&gpsData);
+	nret = writeGPS(&gpsData,buf,nLen);
 	
 	return nret;
 }

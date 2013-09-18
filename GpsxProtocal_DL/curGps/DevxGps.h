@@ -51,7 +51,7 @@ public:
 
 	Protocal();
 	//////////////////////////////////////////////////////////////////////////
-	long startGPS(char *buf,int nlen);
+	long startGPS(char *buf,int nlen,char *pResBuf,int nResBufLen);
 	//long startProcess_GPSData();
 	long Process_Command(GPSCommand *gpsCommand,char *pGpsDataBuf);
 	long startDB(char *buf, int nlen);
@@ -69,9 +69,9 @@ private:
 	
 
 	//////////////////////////////////////////////////////////////////////////
-	long readGPS(GPSGATEDATA &gpsData);
+	long readGPS(GPSGATEDATA &gpsData,char *buf);
 	long writeGPSx(char *buf,char *addr,char *port);
-	long writeGPSx(GPSGATEDATA gpsData);
+	long writeGPSx(GPSGATEDATA gpsData,char *buf,int nLen);
 	long updateHaxiMap(char *strSIM,char *addr,char *port);
 	long updateHaxiMap(char *strSIM,GPSGATEDATA gpsData);
 	BOOL getIPPort(char *strSIM,char *addr,char *port);
@@ -85,7 +85,7 @@ private:
 	long getGpsInfo(GPSClass *pCurGPSClass, char *buf,int nbufLen,GPSINFO &gpsInfo );
 	long SynchronGPSData(GPSClass **pCurGPSClass,char *pInData,int nLenInData,GPSINFO &gpsInfo);
 	GPSClass * getCurGPSDevice(char *buf,GPSINFO&gpsInfo);
-	int doGpsData(char *buf,GPSGATEDATA gpsData,int &nDataLen,int iTimeCount);
+	int doGpsData(char *buf,GPSGATEDATA gpsData,int &nDataLen,int iTimeCount,char *pResBuf,int nResBufLen);
 };
 
 

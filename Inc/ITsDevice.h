@@ -125,7 +125,7 @@ public:
 	virtual int		StopInput() = 0;
 
 	virtual int sendData(const char *pData,int nDataSize,const char *pAddr,int nPort)=0;
-	virtual int sendData(const GPSGATEDATA *pGpsGateData)=0;
+	virtual int sendData(const GPSGATEDATA *pGpsGateData,char *pDatabuf,int nDataLen)=0;
 	virtual void SetMemShareBuffer(MGBufferListEx *pBufferList,DWORD dwBufferSize) = 0;
 
 };

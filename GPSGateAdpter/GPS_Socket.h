@@ -11,11 +11,11 @@ public:
 	int StartWork();
 
 	long getGPS(char *buf,char *addr,int &nPort);
-	long getGPS( GPSGATEDATA *pGpsData);
+	long getGPS( GPSGATEDATA *pGpsData,char *buf);
 
 	long writeGPS(const char *buf,const char *addr,int nPort);
 
-	long writeGPS(const GPSGATEDATA * pGpsData);
+	long writeGPS(const GPSGATEDATA * pGpsData,char *pDatabuf,int nDataLen);
 
 
 	static UINT __stdcall StartCaptureThread(void* pParam);

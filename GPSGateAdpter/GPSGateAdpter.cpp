@@ -90,14 +90,14 @@ long writeGPS(const char *buf,const char *addr,const char * cPort)
 	return theApp.m_pGPS_Socket->writeGPS(buf,addr,atol(cPort));
 }
 
-long getGPS( GPSGATEDATA *pGpsData)
+long getGPS( GPSGATEDATA *pGpsData,char *buf)
 {
-	return theApp.m_pGPS_Socket->getGPS(pGpsData);
+	return theApp.m_pGPS_Socket->getGPS(pGpsData,buf);
 	return 0;
 }
-long writeGPS(const GPSGATEDATA * pGpsData)
+long writeGPS(const GPSGATEDATA * pGpsData,char *pDatabuf,int nDataLen)
 {
-	return theApp.m_pGPS_Socket->writeGPS(pGpsData);
+	return theApp.m_pGPS_Socket->writeGPS(pGpsData,pDatabuf,nDataLen);
 }
 
  int writedb(const GPSINFO *pGpsInfo)

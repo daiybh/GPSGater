@@ -97,16 +97,20 @@ void testJTT808()
 	strcpy(pbuf,"7e 01 02 00 07 01 57 00 00 00 01 0d ad 72 6f 70 65 6e 74 65 84 7e");
 	strcpy(pbuf,"7e01000023015728572436000e00111111373034303444522d3230413120526f706530303101d4c14147323031310000517e");
 	strcpy(pbuf,"7e 0200 0026 015728572436 0172 00000000 00000003 01614058 06c2e200 00e4 0000 0000 130906100802 01 04 0000 0000 0302 0000 d7 7e");
+	strcpy(pbuf,"7e8001000501572857243600010001010200bc7e0000");
+	strcpy(pbuf,"7e0200002201479747688102940000000000000001a71bdfe0a71bdfe0006f00000000130331204253010400000aa9117e");
 	//7e 0102 0007 015700000001 0dad 726f70656e7465 84 7e
+	//strcpy(pbuf,"")
 	printf("%s\r\n",pbuf);
 	char *pbin=NULL;
 	int nBinLen = HexToBin(pbuf,&pbin);
 	test(pbin,nBinLen);	
 }
 void xor2(){
-	char x[30];
-	ZeroMemory(x,30);
+	char x[300];
+	ZeroMemory(x,300);
 	strcpy(x,"800100050157000000010007010200");
+
 	int xorv=0;
 	for(int i=0;i<strlen(x);i++){
 		xorv =xorv^(x[i]-0x30);
@@ -139,9 +143,15 @@ void xor(){
 	x[i++] = 0x01;
 	x[i++] = 0x02;
 	x[i++] = 0x00;
+	char *ppBuf=new char[200];
+	strcpy(ppBuf,"02 22 01 47 87 47 77 94 13 03 01 7e 49 9c 06 1f 04 a0 55 51 13 09 18 12 18 12 01 04 1b");
+	//strcpy(ppBuf,"02 22 01 47 87 47 77 94 13 03 01 7e 49 9c 06 1f 04 a0 55 51 13 09 18 12 18 12 01 04 1b");
+	strcpy(ppBuf,"0200002201478747779400130000000000000003017d02499c061f04a000550000005113091812181201040000001b");
+	char *pBin = NULL;
+	int nRet = HexToBin(ppBuf,&pBin);
 	int xorv=0;
-	for(int y=0;y<i;y++){
-		xorv =xorv^x[y];
+	for(int y=0;y<nRet;y++){
+		xorv =xorv^pBin[y];
 	}
 	BYTE B[10];
 	*(B) = 0x12345;
@@ -181,6 +191,7 @@ void testMod()
 }
 int _tmain(int argc, TCHAR* argv[], TCHAR* envp[])
 {
+	/*
 	int nTaskid=0x7FFFFFFF;
 	int nUdp = 121;
 	int nType = nTaskid | ((nUdp&0x01)<<31);
@@ -191,7 +202,12 @@ int _tmain(int argc, TCHAR* argv[], TCHAR* envp[])
 	int nTaskID = nType&0x7FFFFFFF;
 	printf("\r\n taskid=%x %d udp=%d  \r\n",nTaskID,nTaskID,bUdp);
 
+	int nStatus = 0x140;
+	int noload = (nStatus>>7 )&0x3;
+	printf("\r\n nStatus=%x %d noload=%d  \r\n",nStatus,nStatus,noload);
+
 	system("pause");
+	/**/
 	testMod();
 	xor();
 	FLAGS_log_dir="D:\\NMLOG2\\";

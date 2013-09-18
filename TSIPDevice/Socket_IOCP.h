@@ -25,7 +25,7 @@ public:
 	virtual int		StopInput() ;
 
 	virtual int sendData(const char *pData,int nDataSize,const char *pAddr,int nPort);
-	virtual int sendData(const GPSGATEDATA *pGpsGateData);
+	virtual int sendData(const GPSGATEDATA *pGpsGateData,char *pDatabuf,int nDataLen);
 	virtual void SetMemShareBuffer(MGBufferListEx *pBufferList,DWORD dwBufferSize) ;
 	static void CALLBACK RecvCB(DWORD dwStatus/*״̬*/,BYTE *pClient, BYTE* pBuf, DWORD dwSize, LPVOID pUserData);
 

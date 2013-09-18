@@ -19,7 +19,7 @@ extern "C" {
 	 * @return long buf的长度  0 为没有报文
 	**/
 //	GATE_INTERFACE_API long getGPS( char *buf,char *addr,char * cPort);
-	GATE_INTERFACE_API long getGPS( GPSGATEDATA *pGpsData);
+	GATE_INTERFACE_API long getGPS( GPSGATEDATA *pGpsData,char *buf);
 
 	/*
 	 * 往gps写报文数据
@@ -29,7 +29,7 @@ extern "C" {
 	 * @return long   >0 发送成功  <1 发送失败
 	**/
 //	GATE_INTERFACE_API long writeGPS(const char *buf,const char *addr,const char * cPort);
-	GATE_INTERFACE_API long writeGPS(const GPSGATEDATA * pGpsData);
+	GATE_INTERFACE_API long writeGPS(const GPSGATEDATA * pGpsData,char *pDatabuf,int nDataLen);
 
 	/*
 	 * 报解析完毕的信息 写入数据库

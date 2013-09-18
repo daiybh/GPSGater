@@ -131,6 +131,7 @@ typedef struct tagGPSInfo
 	char	APN[N_LEN];//移动分配的APN字符串
 	int     Noload;//00：空车；01：半载；10：保留；11：满载
 	bool bValid;//此数据是否有效
+	bool bNeedWriteDataBase;
 	stOBDInfo	st_OBD_Info;
 	int		nHaveOBDInfo;//obd的有效个数
 	tagGPSInfo()
@@ -138,6 +139,7 @@ typedef struct tagGPSInfo
 		nHaveOBDInfo=0;
 		bValid = false;
 		Noload = 0;
+		bNeedWriteDataBase = true;
 	}
 }GPSINFO;
 //*XX,YYYYYYYYYY,CMD,HHMMSS,PARA1,PARA2,…#

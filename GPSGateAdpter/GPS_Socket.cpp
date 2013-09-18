@@ -87,7 +87,7 @@ long CGPS_Socket::getGPS( char *buf,char *addr,int &nPort )
 	return dwRet;
 }
 
-long CGPS_Socket::getGPS( GPSGATEDATA *pGpsData )
+long CGPS_Socket::getGPS( GPSGATEDATA *pGpsData ,char *buf)
 {
 	LISTITEMINFOEX *pItem = m_pDataList->FetchDataHeadItem();
 	if(g_int64Cnt++ %1000==0)
@@ -100,8 +100,8 @@ long CGPS_Socket::getGPS( GPSGATEDATA *pGpsData )
 	if(pItem==NULL)
 		return 0;
 	DWORD dwCanCopyLen = min(pGpsData->nDataLen-1,pItem->nBufSizeUsedV0);
-	memcpy(pGpsData->pDatabuf ,pItem->pBufV0,dwCanCopyLen);
-	pGpsData->pDatabuf[dwCanCopyLen+1] ='\0';
+	memcpy(buf ,pItem->pBufV0,dwCanCopyLen);
+	buf[dwCanCopyLen+1] ='\0';
 
 	memcpy(&pGpsData->curSocketInfo,&pItem->curSocketInfo,sizeof(SOCKETINFO));
 	pGpsData->nDataLen = dwCanCopyLen;
@@ -122,9 +122,9 @@ long CGPS_Socket::writeGPS( const char *buf,const char *addr,int nPort )
 	return nRet;
 }
 
-long CGPS_Socket::writeGPS( const GPSGATEDATA * pGpsData )
+long CGPS_Socket::writeGPS( const GPSGATEDATA * pGpsData ,char *pDatabuf,int nDataLen)
 {
-	long nRet =m_pITSDevice_card->sendData(pGpsData);
+	long nRet =m_pITSDevice_card->sendData(pGpsData,pDatabuf,nDataLen);
 //	CString strLog;
 // 	CString sAddr(addr),sBuf(buf);
 // 	strLog.Format(_T("writeGPS %s,%s,%d---ret=%d "),sBuf,sAddr,nPort,nRet);
