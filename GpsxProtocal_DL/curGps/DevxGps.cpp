@@ -462,12 +462,12 @@ int Protocal::doGpsData( char *buf,GPSGATEDATA gpsData,int &nDataLen,int iTimeCo
 		Write_Log(gpsInfo.COMMADDR,strTmp);
 	}
 
-	buf2HexStr_devx(buf,gpsData.nDataLen,strTmp,nLen_StrTmp);
-	Write_Log("ts",strTmp);
+	//buf2HexStr_devx(buf,gpsData.nDataLen,strTmp,nLen_StrTmp);
+	//Write_Log("ts",strTmp);
 	if(gpsInfo.nMsgID== MSG_NULL)	
 	{
-		buf2HexStr_devx(buf,gpsData.nDataLen,strTmp,nLen_StrTmp);
-		Write_Log("msgNULL",strTmp);
+		//buf2HexStr_devx(buf,gpsData.nDataLen,strTmp,nLen_StrTmp);
+		//Write_Log("msgNULL",strTmp);
 	}
 	else
 	{

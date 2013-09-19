@@ -90,7 +90,7 @@ int getCheckCode_xor(const char *pstrBuf,int nStrLen,char *strCheckCode)
 	long nCode = 0;
 	for(int i=0;i<nStrLen;i++)
 	{
-		nCode =nCode^(pstrBuf[i]);
+		nCode =nCode^(pstrBuf[i]&0xFF);		
 	}
 	*strCheckCode=nCode&0xFF;
 	//sprintf(strCheckCode,"%.2X",nCode&0xFF);
@@ -126,7 +126,8 @@ long GpsJTT808::getGpsInfo( char *pSrcbuf,int nbufLen,GPSINFO &gpsInfo )
 		delete[] pTempBuf;	
 		return -1;
 	}
-	FanZhuanYi((char*)pTempBuf,iTrueLen+2);
+	int nFanzhuanyiLen = FanZhuanYi((char*)pTempBuf,iTrueLen+2);
+	iTrueLen = nFanzhuanyiLen;
 	const BYTE *pBuf =pTempBuf;
 	//pBuf = buf+1;
 	int nMask = *(pBuf+iTrueLen-1)&0xFF;
