@@ -67,7 +67,7 @@ public:
 	
 	int Init(char *user,char*pwd,char*serverName,BOOL bInsertAsNewVehicle,DWORD dwUpdateVehicleTime,char *serverAddr=NULL);
 	int InsertData( const GPSINFO *pGpsInfo ,double doubleLongitude,double doubleLatitude,CStringA s_RecvTime ,CStringA str_CurTime,int iState);
-	int InsertData(char *pInsertDataSQL);
+	int DoInsertSQL(char *pInsertDataSQL,BOOL bShowErrorInfo=TRUE);
 	int CreateTable(struct tm* pCurGPSTime);
 	int Updata(const GPSINFO *pGpsInfo ,double doubleLongitude,double doubleLatitude,CStringA s_RecvTime,CStringA str_CurTime,JUDGE_RET judge_ret);
 	void Close();

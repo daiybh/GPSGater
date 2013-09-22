@@ -508,7 +508,7 @@ int COracleOCI_o::Insert_As_NewVehicle( const char *pTid,const char*pSim )
 		t.wYear,t.wMonth,t.wDay,
 		t.wHour,t.wMinute,t.wSecond
 		);
-	if(1== InsertData(m_strInsertDataSQL))
+	if(1== DoInsertSQL(m_strInsertDataSQL))
 	{
 		m_DataInfoMap[_atoi64(pSim)] = new DataInfo();
 		if (pSim != pTid)
@@ -573,11 +573,13 @@ int COracleOCI_o::Updata( const GPSINFO *pGpsInfo ,double doubleLongitude,double
 	tempBuffer[0]='\0';
 	if(bUpateLocInfo)
 	{
-		sprintf(tempBuffer,"LNG=%.4f,LAT=%.4f,DIRECTION=%s,SPEED=%s,", 
+		sprintf(tempBuffer,"LNG=%.4f,LAT=%.4f,DIRECTION=%s,SPEED=%s,noload=%d,mileage=%s,", 
 			doubleLongitude,
 			doubleLatitude,
 			pGpsInfo->Heading,
-			pGpsInfo->Speed);
+			pGpsInfo->Speed,
+			pGpsInfo->Noload,
+			pGpsInfo->st_OBD_Info.Mileage);
 	}
 
 	sprintf(m_strUpdateDataSQL,"update VEHICLE set \
@@ -601,6 +603,7 @@ int COracleOCI_o::Updata( const GPSINFO *pGpsInfo ,double doubleLongitude,double
 	if (status != OCI_SUCCESS)
 	{
 		printf_ErrorLog(_T("OCIStmtPrepare"));
+		WriteLog(LOGNAME,logLevelError,CString(m_strUpdateDataSQL));
 		return -2;
 	}
 	status = OCIStmtExecute(conn.mysvchp, conn.mystmthp, conn.myerrhp, 1, 0, NULL, NULL, OCI_DEFAULT);
@@ -933,7 +936,7 @@ int COracleOCI_o::Insert_ODBInfo_Data(const GPSINFO *pGpsInfo,CStringA str_CurTi
 									  pstOBDInfo->Single_mileage,
 									  pstOBDInfo->Remaining_fuel,
 									  pstOBDInfo->ErrorCode);
-	return InsertData(m_strInsertDataSQL);
+	return DoInsertSQL(m_strInsertDataSQL);
 }
 int COracleOCI_o::Insert_Transgress_Data( const GPSINFO *pGpsInfo ,double doubleLongitude,double doubleLatitude,CStringA s_RecvTime ,CStringA str_CurTime,DataInfo *pDI )
 {
@@ -953,7 +956,7 @@ int COracleOCI_o::Insert_Transgress_Data( const GPSINFO *pGpsInfo ,double double
 							   pGpsInfo->Speed,
 							   pGpsInfo->Heading);
 
-	return InsertData(m_strInsertDataSQL);
+	return DoInsertSQL(m_strInsertDataSQL);
 }
 int COracleOCI_o::Insert_OverSpeed_Data( const GPSINFO *pGpsInfo ,double doubleLongitude,double doubleLatitude,CStringA s_RecvTime ,CStringA str_CurTime,DataInfo *pDI )
 {
@@ -969,7 +972,7 @@ int COracleOCI_o::Insert_OverSpeed_Data( const GPSINFO *pGpsInfo ,double doubleL
 							   pGpsInfo->Speed,
 							   doubleLongitude,doubleLatitude);
 
-	return InsertData(m_strInsertDataSQL);
+	return DoInsertSQL(m_strInsertDataSQL);
 }
 
 int COracleOCI_o::InsertData( const GPSINFO *pGpsInfo ,double doubleLongitude,double doubleLatitude,CStringA s_RecvTime ,CStringA str_CurTime,int iState)
@@ -992,7 +995,7 @@ int COracleOCI_o::InsertData( const GPSINFO *pGpsInfo ,double doubleLongitude,do
 							  (pGpsInfo->Heading),
 							  hex2dec(pGpsInfo->VERFYCODE),iState,pGpsInfo->Noload);
 	
-	if(InsertData(m_strInsertDataSQL)==1)
+	if(DoInsertSQL(m_strInsertDataSQL,FALSE)==1)
 		return 1;
 
 	sprintf(m_strInsertDataSQL,"Insert into GPS_%s (SIM,tid,GPS_DATE,RECV_DATE,LNG,LAT,VEO,DIRECT,TASKID,ISTATE) \
@@ -1009,9 +1012,9 @@ int COracleOCI_o::InsertData( const GPSINFO *pGpsInfo ,double doubleLongitude,do
 							   (pGpsInfo->Heading),
 							   hex2dec(pGpsInfo->VERFYCODE),iState);
 
-	return InsertData(m_strInsertDataSQL);
+	return DoInsertSQL(m_strInsertDataSQL);
 }
-int COracleOCI_o::InsertData(char *pInsertDataSQL)
+int COracleOCI_o::DoInsertSQL(char *pInsertDataSQL,BOOL bShowErrorInfo/*=TRUE*/)
 {
 	if(!m_bInitOCI) return 0;
 	OutputDebugStringA(pInsertDataSQL);
@@ -1025,8 +1028,11 @@ int COracleOCI_o::InsertData(char *pInsertDataSQL)
 		(ub4) OCI_NTV_SYNTAX, (ub4) OCI_DEFAULT);
 	if (status != OCI_SUCCESS)
 	{
-		printf_ErrorLog(_T("OCIStmtExecute"));
-		WriteLog(LOGNAME,logLevelError,CString(m_strInsertDataSQL));
+		if(bShowErrorInfo)
+		{
+			printf_ErrorLog(_T("OCIStmtExecute"));
+			WriteLog(LOGNAME,logLevelError,CString(m_strInsertDataSQL));
+		}
 		return -2;
 	}
 	
@@ -1037,20 +1043,13 @@ int COracleOCI_o::InsertData(char *pInsertDataSQL)
 
 	if (status != OCI_SUCCESS)
 	{
-		printf_ErrorLog(_T("OCIStmtExecute"));
-		WriteLog(LOGNAME,logLevelError,CString(m_strInsertDataSQL));
+		if(bShowErrorInfo)
+		{
+			printf_ErrorLog(_T("OCIStmtExecute"));
+			WriteLog(LOGNAME,logLevelError,CString(m_strInsertDataSQL));
+		}
 		return -3;
 	}
-	//在批量执行的时候，为了保证可以插入 kx + c 行记录，可以循环调用OCIStmtExecute，给第4个参数传入这次实际要导入的行数
-	//    for (i = 0; i < 10000; i++)
-	//    {
-	//        id = i;
-	//        OCIStmtExecute(conn.mysvchp, conn.mystmthp, conn.myerrhp, 1, 0, NULL, NULL, OCI_DEFAULT);
-	//
-	//    }
-	//       conn.execute();
-	//AfxMessageBox(_T("InsertData-4"));
-
 	conn.commit();
 	return 1;
 }

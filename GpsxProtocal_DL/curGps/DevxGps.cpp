@@ -463,7 +463,11 @@ int Protocal::doGpsData( char *buf,GPSGATEDATA gpsData,int &nDataLen,int iTimeCo
 	}
 
 	//buf2HexStr_devx(buf,gpsData.nDataLen,strTmp,nLen_StrTmp);
-	//Write_Log("ts",strTmp);
+
+	//char pStrLog[1024];
+	//sprintf(pStrLog,("%s:W[%d]:valid[%d]:NoLoad[%d]:%s"),gpsInfo.COMMADDR,gpsInfo.bNeedWriteDataBase,gpsInfo.bValid,gpsInfo.Noload,strTmp);
+	//::WriteLog(gpsInfo.COMMADDR,logLevelInfo,pStrLog);
+
 	if(gpsInfo.nMsgID== MSG_NULL)	
 	{
 		//buf2HexStr_devx(buf,gpsData.nDataLen,strTmp,nLen_StrTmp);
@@ -501,13 +505,12 @@ int Protocal::doGpsData( char *buf,GPSGATEDATA gpsData,int &nDataLen,int iTimeCo
 			else sprintf(strTmp,"ret [Console]→[GPS]-%s",gpsData.pDatabuf);			
 			//TODO: NEEDLOG
 			//		m_pGps->wlog(gpsInfo.COMMADDR,strTmp);
-			Write_Log(gpsInfo.COMMADDR,strTmp);
+			//Write_Log(gpsInfo.COMMADDR,strTmp);// 
+// 			buf2HexStr_devx(buf,gpsData.nDataLen,strTmp,nLen_StrTmp);
+// 			Write_Log(gpsInfo.COMMADDR,strTmp);
 
-			buf2HexStr_devx(buf,gpsData.nDataLen,strTmp,nLen_StrTmp);
-			Write_Log(gpsInfo.COMMADDR,strTmp);
-
-			buf2HexStr_devx(pResBuf,nLen,strTmp,nLen_StrTmp);
-			Write_Log(gpsInfo.COMMADDR,strTmp);
+			//buf2HexStr_devx(pResBuf,nLen,strTmp,nLen_StrTmp);
+			//Write_Log(gpsInfo.COMMADDR,strTmp);
 		}
 		else{
 			sprintf(strTmp,"starGps-当前报文不需要响应--SIM:%s",gpsInfo.COMMADDR);

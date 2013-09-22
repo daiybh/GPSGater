@@ -165,11 +165,11 @@ long GpsJTT808::getGpsInfo( char *pSrcbuf,int nbufLen,GPSINFO &gpsInfo )
 	if(nRet==0)
 	{
 		//写成文件保留下来
-		char pdestBuf[1024];
-		ZeroMemory(pdestBuf,1024);
-		buf2HexStr2(pSrcbuf,pdestBuf,nbufLen);
+	//	char pdestBuf[1024];
+	//	ZeroMemory(pdestBuf,1024);
+	//	buf2HexStr2(pSrcbuf,pdestBuf,nbufLen);
 
-		WriteLog(_T("jtt808"),logLevelError,pdestBuf);
+	//	WriteLog(_T("jtt808"),logLevelError,pdestBuf);
 	}
 	delete[] pTempBuf;
 	return nRet>0 ?(iTrueLen+1):0;
@@ -186,8 +186,9 @@ int getbin(int x)
 }
 BOOL GpsJTT808::getResMsg( char *strDestBuf,GPSINFO &gpsInfo )
 {
-	if(gpsInfo.nMsgID==MSG_LOGIN){
+	if(gpsInfo.nMsgID==MSG_LOGIN || gpsInfo.nMsgID== MSG_LOCATION){
 		int nMsgID = atoi(gpsInfo.PreFix);
+		if(nMsgID<1)return FALSE;
 		//鉴权码 返回
 		tagMsgHead msgHead;
 		msgHead.msgID=nMsgID;
@@ -305,6 +306,8 @@ int GpsJTT808::diposMsgBody( tagMsgHead msgHead,const BYTE *pMsgBody,GPSINFO *gp
 				    7e 0200 0026 015728572436 01db 00000000 00000003 01614058 06c2e200 00e4 0000 0000 130906100802 010400000000030200007d027e
 				*/
 				gpsInfo->nMsgID = MSG_LOCATION;
+				sprintf(gpsInfo->PreFix,"%d",0x8001);
+
 				struct LocInfo 
 				{
 					DWORD alarmFlag;
@@ -368,6 +371,7 @@ int GpsJTT808::diposMsgBody( tagMsgHead msgHead,const BYTE *pMsgBody,GPSINFO *gp
 				{
 				case 0x01:
 					//c车上的里程数
+					sprintf(gpsInfo->st_OBD_Info.Mileage ,"%d", getDword(pAddtionBuf+3));
 					break;
 				default:
 					break;
@@ -388,8 +392,10 @@ int GpsJTT808::diposMsgBody( tagMsgHead msgHead,const BYTE *pMsgBody,GPSINFO *gp
 			break;
 	}
 	if(gpsInfo->nMsgID==MSG_LOGIN){
-
 		gpsInfo->bValid=false;	
+	}
+	if(gpsInfo->nMsgID != MSG_NULL)
+	{
 		gpsInfo->SEQ[0] = msgHead.msgSN/256;
 		gpsInfo->SEQ[1] = msgHead.msgSN;
 
