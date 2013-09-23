@@ -23,6 +23,7 @@ tmp/
 *.user
 *.log
 *.exp
+*.lib
 nmlog/
 publish/
 binU/
