@@ -172,7 +172,8 @@ long GpsJTT808::getGpsInfo( char *pSrcbuf,int nbufLen,GPSINFO &gpsInfo )
 	//	WriteLog(_T("jtt808"),logLevelError,pdestBuf);
 	}
 	delete[] pTempBuf;
-	return nRet>0 ?(iTrueLen+1):0;
+	return iTrueLen+1;
+	//return nRet>0 ?(iTrueLen+1):0;
 }
 
 int getbin(int x)
@@ -355,7 +356,7 @@ int GpsJTT808::diposMsgBody( tagMsgHead msgHead,const BYTE *pMsgBody,GPSINFO *gp
 				gpsInfo->bValid = (locationInfo.status&0x2);
 
 				//8-9:  00£º¿Õ³µ£»01£º°ëÔØ£»10£º±£Áô£»11£ºÂúÔØ
-				gpsInfo->Noload =(locationInfo.status>>7 )&0x3;
+				gpsInfo->Noload =(locationInfo.status>>8 )&0x3;
 				
 				const BYTE *pAddtionBuf = pMsgBody+28;
 				struct AddtionInfo

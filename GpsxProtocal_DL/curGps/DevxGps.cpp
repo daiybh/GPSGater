@@ -409,6 +409,7 @@ long Protocal::startGPS( char *buf,int nlen,char *pResBuf,int nResBufLen )
 		int nDataLen =0;
 		if(doGpsData(pDataBuf,gpsData,nDataLen,iTimeCount,pResBuf,nResBufLen)==-2002)
 			break;
+		if(nDataLen<=0)break;
 
 		gpsData.nDataLen =gpsData.nDataLen-nDataLen;
 		pDataBuf = pDataBuf+nDataLen;
@@ -462,11 +463,11 @@ int Protocal::doGpsData( char *buf,GPSGATEDATA gpsData,int &nDataLen,int iTimeCo
 		Write_Log(gpsInfo.COMMADDR,strTmp);
 	}
 
-	//buf2HexStr_devx(buf,gpsData.nDataLen,strTmp,nLen_StrTmp);
+	buf2HexStr_devx(buf,gpsData.nDataLen,strTmp,nLen_StrTmp);
 
-	//char pStrLog[1024];
-	//sprintf(pStrLog,("%s:W[%d]:valid[%d]:NoLoad[%d]:%s"),gpsInfo.COMMADDR,gpsInfo.bNeedWriteDataBase,gpsInfo.bValid,gpsInfo.Noload,strTmp);
-	//::WriteLog(gpsInfo.COMMADDR,logLevelInfo,pStrLog);
+	char pStrLog[1024];
+	sprintf(pStrLog,("%s:W[%d]:valid[%d]:NoLoad[%d]:%s"),gpsInfo.COMMADDR,gpsInfo.bNeedWriteDataBase,gpsInfo.bValid,gpsInfo.Noload,strTmp);
+	::WriteLog(gpsInfo.COMMADDR,logLevelInfo,pStrLog);
 
 	if(gpsInfo.nMsgID== MSG_NULL)	
 	{

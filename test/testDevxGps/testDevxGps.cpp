@@ -88,20 +88,23 @@ int HexToBin(char *pHex,char **ppBin)
 	}
 	return nBinLen;
 }
-void testJTT808()
+void testJTT808(char *pbuf)
 {
-	char *pbuf=new char[1024];
-	ZeroMemory(pbuf,1024);
-	strcpy(pbuf,"7E 01 02 00 07 01 57 00 00 00 01 00 05 72 6F 70 65 6E 74 65 21 7E");
-	strcpy(pbuf,"7E 01 02 00 07 01 57 00 00 00 01 00 06 72 6F 70 65 6E 74 65 22 7E");
-	strcpy(pbuf,"7e 01 02 00 07 01 57 00 00 00 01 0d ad 72 6f 70 65 6e 74 65 84 7e");
-	strcpy(pbuf,"7e01000023015728572436000e00111111373034303444522d3230413120526f706530303101d4c14147323031310000517e");
-	strcpy(pbuf,"7e 0200 0026 015728572436 0172 00000000 00000003 01614058 06c2e200 00e4 0000 0000 130906100802 01 04 0000 0000 0302 0000 d7 7e");
-	strcpy(pbuf,"7e8001000501572857243600010001010200bc7e0000");
-	strcpy(pbuf,"7e0200002201479747688102940000000000000001a71bdfe0a71bdfe0006f00000000130331204253010400000aa9117e");
-	strcpy(pbuf,"7e02000022014797476881107d010000000000000003017d0228cc061f25de005c0000008c130918162838010400000aa93a7e");
-	//7e 0102 0007 015700000001 0dad 726f70656e7465 84 7e
-	//strcpy(pbuf,"")
+	if(pbuf==NULL)
+	{
+		pbuf=new char[1024];
+		ZeroMemory(pbuf,1024);
+		strcpy(pbuf,"7E 01 02 00 07 01 57 00 00 00 01 00 05 72 6F 70 65 6E 74 65 21 7E");
+		strcpy(pbuf,"7E 01 02 00 07 01 57 00 00 00 01 00 06 72 6F 70 65 6E 74 65 22 7E");
+		strcpy(pbuf,"7e 01 02 00 07 01 57 00 00 00 01 0d ad 72 6f 70 65 6e 74 65 84 7e");
+		strcpy(pbuf,"7e01000023015728572436000e00111111373034303444522d3230413120526f706530303101d4c14147323031310000517e");
+		strcpy(pbuf,"7e 0200 0026 015728572436 0172 00000000 00000003 01614058 06c2e200 00e4 0000 0000 130906100802 01 04 0000 0000 0302 0000 d7 7e");
+		strcpy(pbuf,"7e8001000501572857243600010001010200bc7e0000");
+		strcpy(pbuf,"7e0200002201479747688102940000000000000001a71bdfe0a71bdfe0006f00000000130331204253010400000aa9117e");
+		strcpy(pbuf,"7e0200 0022 014797476881 107d 010000000000000003017d0228cc061f25de005c0000008c130918162838010400000aa93a7e");
+		strcpy(pbuf,"7e0200 0022 014787807837 0392 0000000000000302017d01c2eb061fe92400590000005f13092312064601040000000a5d7e");
+		//strcpy(pbuf,"")
+	}
 	printf("%s\r\n",pbuf);
 	char *pbin=NULL;
 	int nBinLen = HexToBin(pbuf,&pbin);
@@ -192,41 +195,22 @@ void testMod()
 }
 int _tmain(int argc, TCHAR* argv[], TCHAR* envp[])
 {
-	/*
-	int nTaskid=0x7FFFFFFF;
-	int nUdp = 121;
-	int nType = nTaskid | ((nUdp&0x01)<<31);
-	printf("ntaskid=%x %d udp=%d  ntype=%x,%d",nTaskid,nTaskid,nUdp,nType,nType);
-
-	BOOL bUdp=0;
-	bUdp = (nType>>31)&0x01;
-	int nTaskID = nType&0x7FFFFFFF;
-	printf("\r\n taskid=%x %d udp=%d  \r\n",nTaskID,nTaskID,bUdp);
-
-	int nStatus = 0x140;
-	int noload = (nStatus>>7 )&0x3;
-	printf("\r\n nStatus=%x %d noload=%d  \r\n",nStatus,nStatus,noload);
-
-	system("pause");
-	/**/
-	testMod();
-	xor();
-	FLAGS_log_dir="D:\\NMLOG2\\";
-	google::InitGoogleLogging(argv[0]);
-	//google::SetLogDestination(0,"info.log");
-	//google::SetLogDestination(google::GLOG_ERROR,"error.log");
-	google::SetLogFilenameExtension("log");
-	google::FlushLogFiles(google::GLOG_INFO);
-	//FLAGS_log_dir=".";
-	LOG(INFO)<<"hello glog";
-	LOG(ERROR)<<"ERR: glog";
+// 	FLAGS_log_dir="D:\\NMLOG2\\";
+// 	google::InitGoogleLogging(argv[0]);
+// 	//google::SetLogDestination(0,"info.log");
+// 	//google::SetLogDestination(google::GLOG_ERROR,"error.log");
+// 	google::SetLogFilenameExtension("log");
+// 	google::FlushLogFiles(google::GLOG_INFO);
+// 	//FLAGS_log_dir=".";
+// 	LOG(INFO)<<"hello glog";
+// 	LOG(ERROR)<<"ERR: glog";
 
 	int nRetCode = 0;
 	int nx = 2;
 	int ny = 2<<8;
 	int nz = 2>>8;
 	int nu = 8<<2;
-	testJTT808();
+	testJTT808(argc>1?argv[1]:NULL);
 	// 初始化 MFC 并在失败时显示错误
 	if (!AfxWinInit(::GetModuleHandle(NULL), NULL, ::GetCommandLine(), 0))
 	{
