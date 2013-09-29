@@ -322,11 +322,11 @@ int GpsJTT808::diposMsgBody( tagMsgHead msgHead,const BYTE *pMsgBody,GPSINFO *gp
 					void copy2GpsInfo(GPSINFO *gpsinfo)
 					{
 						gpsinfo->nWarnFlag = alarmFlag;
-						sprintf(gpsinfo->Latitude,"%d.%d",latitude/1000000,latitude%1000000);
+						sprintf(gpsinfo->Latitude,"%f",(double(latitude))/1000000);
 
-						sprintf(gpsinfo->Longitude,"%d.%d",longitude/1000000,longitude%1000000);
+						sprintf(gpsinfo->Longitude,"%f",(double(longitude))/1000000);
 						sprintf(gpsinfo->Altitude,"%d",altitude);
-						sprintf(gpsinfo->Speed,"%d",speed);
+						sprintf(gpsinfo->Speed,"%f",(double(speed))/10);
 						sprintf(gpsinfo->Heading,"%d",direct);
 						sprintf(gpsinfo->Time,"20%s",time);
 						gpsinfo->Time[19] = 0x01;
@@ -372,7 +372,10 @@ int GpsJTT808::diposMsgBody( tagMsgHead msgHead,const BYTE *pMsgBody,GPSINFO *gp
 				{
 				case 0x01:
 					//c车上的里程数
-					sprintf(gpsInfo->st_OBD_Info.Mileage ,"%d", getDword(pAddtionBuf+3));
+					{
+						double dMileage = getDword(pAddtionBuf+2);
+						sprintf(gpsInfo->st_OBD_Info.Mileage ,"%f", (dMileage/10));
+					}
 					break;
 				default:
 					break;
