@@ -78,7 +78,7 @@ typedef struct tagOBDInfo
 {
 	char Horizontal_positioning_accuracy[N_LEN];	//<水平定位精度>,
 	char Altitude[N_LEN];	//<海拔高度>,
-	char Mileage[N_LEN];//<里程数>,
+	char Mileage[N_LEN];//<里程数>,单位千米/公里
 	char Runing_Time[N_LEN];//<运行时间>,
 	char AGPS_Info[N_LEN];//<基站信息>,
 	char status_InOutTake[N_LEN];//<输入输出口状态>,
@@ -111,13 +111,13 @@ typedef struct tagGPSInfo
 	char	COMMADDR[N_LEN];//SIM NO.
 	char	CMDID[N_LEN];//command ID
 	char	CMDARGUS[N_LEN];//commad parameters
-	char	Time[N_LEN];// 报文产生时间
+	char	Time[N_LEN];// 报文产生时间20130926220506
 	char	UTC[N_LEN];//
-	char	Latitude[N_LEN];//纬度，单位为毫秒 16进制ASCII字符串
-	char	Longitude[N_LEN];//经度，单位为毫秒 16进制ASCII字符串
-	char	Altitude[N_LEN];//海拔高度，单位为毫秒 16进制ASCII字符串
-	char	Heading[N_LEN];//方向，单位度，值范围0-360 16进制ASCII字符串
-	char	Speed[N_LEN];//速度	16进制ASCII字符串	A6B	为单位m/h
+	char	Latitude[N_LEN];//纬度，单位为度 DD.DDDD
+	char	Longitude[N_LEN];//经度，单位为度 DDD.DDDDD
+	char	Altitude[N_LEN];//海拔高度，单位为米
+	char	Heading[N_LEN];//方向，单位度，值范围0-360 
+	char	Speed[N_LEN];//速度	单位m/h
 	char	TransactionFlag[N_LEN];//报警状态字	以","分隔的一或多个16进制ASCII字符串
 	char	OEMStatus[N_LEN];//扩展状态字
 	char	StatusString[N_LEN];// 终端状态描述	以","分隔的终端描述信息
