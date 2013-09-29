@@ -24,10 +24,12 @@ public:
 // ÖØÐ´
 public:
 	virtual BOOL InitInstance();
+	void InitAdpter();
 
 	DECLARE_MESSAGE_MAP()
 private:
 public:
+	BOOL		  m_bInitAdpter;
 	CGPS_Socket * m_pGPS_Socket;
 	DataOpter   * m_pDataOpter;
 	GetCommand	* m_pGetCommand;

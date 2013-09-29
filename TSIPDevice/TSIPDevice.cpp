@@ -52,25 +52,10 @@ CTSIPDeviceApp::CTSIPDeviceApp()
 
 CTSIPDeviceApp theApp;
 
-#include "io.h"
-void openCommandWindow(){
-	int hCrt;
-	FILE *hf;
-	AllocConsole();
-
-	hCrt = _open_osfhandle(
-		(long)GetStdHandle(STD_OUTPUT_HANDLE),
-		0x4000);
-	hf = _fdopen(hCrt,"w");
-	*stdout =*hf;
-	int i = setvbuf(stdout,NULL,_IONBF,0);
-
-}
 // CTSIPDeviceApp ≥ı ºªØ
 
 BOOL CTSIPDeviceApp::InitInstance()
 {
 	CWinApp::InitInstance();
-	openCommandWindow();
 	return TRUE;
 }

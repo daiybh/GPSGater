@@ -873,8 +873,11 @@ int COracleOCI_o::WriteData( const GPSINFO *pGpsInfo )
 	if(g_WriteData_Cnt++ %100==0 || nRet < 1)
 	{
 		CString strLog;
-		strLog.Format(_T("sim=%I64d--judge_ret=%d--lng=%.4f  lat=%.4f speed=%s recTime=%s g_WriteData_Cnt=%I64d--nret=%d"),
-			iSim,judge_ret,doubleLongitude,doubleLatitude,CString(pGpsInfo->Speed),CString(str_GpsTime),g_WriteData_Cnt,nRet);
+		strLog.Format(_T("sim=%I64d-bValid=%d--judge_ret=%d--lng=%.4f  lat=%.4f speed=%s gpsTime=%s recTime=%s g_WriteData_Cnt=%I64d--nret=%d"),
+			iSim,pGpsInfo->bValid,
+			judge_ret,doubleLongitude,doubleLatitude,
+			CString(pGpsInfo->Speed),
+			CString(pGpsInfo->Time),CString(str_GpsTime),g_WriteData_Cnt,nRet);
 		WriteLog(LOGNAME,logLevelInfo,strLog);		
 	}
 	return nRet;

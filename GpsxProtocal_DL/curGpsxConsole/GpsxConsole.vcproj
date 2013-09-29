@@ -178,7 +178,7 @@
 			<Tool
 				Name="VCLinkerTool"
 				AdditionalDependencies="DevxGps.lib"
-				OutputFile="$(SolutionDir)\BinU/GpsxConsole.exe"
+				OutputFile="$(SolutionDir)\BinU/GpsxConsoleDaemon.exe"
 				LinkIncremental="1"
 				SuppressStartupBanner="true"
 				AdditionalLibraryDirectories="$(SolutionDir)\LibU"

@@ -48,9 +48,10 @@ CGPSGateAdpterApp::CGPSGateAdpterApp()
 	CreateNMLogWriter();
 	// TODO: 在此处添加构造代码，
 	// 将所有重要的初始化放置在 InitInstance 中
-	m_pGPS_Socket = new CGPS_Socket();
-	m_pDataOpter  = new DataOpter();
-	m_pGetCommand = new GetCommand();
+	m_bInitAdpter=FALSE;
+	m_pGPS_Socket = NULL;
+	m_pDataOpter  = NULL;
+	m_pGetCommand = NULL;
 }
 
 
@@ -62,10 +63,18 @@ CGPSGateAdpterApp theApp;
 // CGPSGateAdpterApp 初始化
 
 #include <process.h>
-BOOL CGPSGateAdpterApp::InitInstance()
+void CGPSGateAdpterApp::InitAdpter()
 {
+	if(m_bInitAdpter)return;
 	WriteLog(LOGNAME,logLevelError,_T("CGPSGateAdpterApp::InitInstance"));
-	CWinApp::InitInstance();
+
+	if(m_pGPS_Socket==NULL)
+		m_pGPS_Socket = new CGPS_Socket();
+	if(m_pDataOpter==NULL)
+		m_pDataOpter  = new DataOpter();
+	if(m_pGetCommand==NULL)
+		m_pGetCommand = new GetCommand();
+
 	int nRet = m_pGPS_Socket->StartWork();
 	int nRet1 = m_pDataOpter->StartWork();
 	int nRet2 = m_pGetCommand->StartWork();
@@ -73,11 +82,17 @@ BOOL CGPSGateAdpterApp::InitInstance()
 
 	sLog.Format(_T("m_pGPS_Socket->StartWork()=%d--%d--%d"),nRet,nRet1,nRet2);
 	WriteLog(LOGNAME,logLevelError,sLog);
+	m_bInitAdpter = TRUE;
+}
+BOOL CGPSGateAdpterApp::InitInstance()
+{
+	CWinApp::InitInstance();
+	m_bInitAdpter = FALSE;
 	return TRUE;
 }
-
 long getGPS(char *buf,char *addr,char * cPort)
 {
+	theApp.InitAdpter();
 	int dwPort=0;
 	
 	long nRet = theApp.m_pGPS_Socket->getGPS(buf,addr,dwPort);
@@ -87,30 +102,36 @@ long getGPS(char *buf,char *addr,char * cPort)
 
 long writeGPS(const char *buf,const char *addr,const char * cPort)
 {
+	theApp.InitAdpter();
 	return theApp.m_pGPS_Socket->writeGPS(buf,addr,atol(cPort));
 }
 
 long getGPS( GPSGATEDATA *pGpsData,char *buf)
 {
+	theApp.InitAdpter();
 	return theApp.m_pGPS_Socket->getGPS(pGpsData,buf);
 	return 0;
 }
 long writeGPS(const GPSGATEDATA * pGpsData,char *pDatabuf,int nDataLen)
 {
+	theApp.InitAdpter();
 	return theApp.m_pGPS_Socket->writeGPS(pGpsData,pDatabuf,nDataLen);
 }
 
  int writedb(const GPSINFO *pGpsInfo)
-{
+ {
+	 theApp.InitAdpter();
 	return theApp.m_pDataOpter->writedb(pGpsInfo);
 	return 0;
 }
  int WriteCommand(GPSCommand * pGpsCommand)
  {
+	 theApp.InitAdpter();
 	 return theApp.m_pDataOpter->writeCommand(pGpsCommand);
  }
 
 int getCmd(GPSCommand *pGpsCmd)
 {
+	theApp.InitAdpter();
 	return theApp.m_pGetCommand->getCmd(pGpsCmd);
 }
