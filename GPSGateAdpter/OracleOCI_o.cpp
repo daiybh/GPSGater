@@ -795,14 +795,14 @@ int COracleOCI_o::WriteData( const GPSINFO *pGpsInfo )
 			if(NeedCreateNewTable(m_tm_TableNameTime,&pCurGpsTm))
 			{
 
+				int nCreateRet = CreateTable(&pCurGpsTm);
 				CString strLog;
-				strLog.Format(_T("sim:%s-->NeedCreateTable-->pre:[%d-%d-%d] cur:[%d-%d-%d]"),
+				strLog.Format(_T("sim:%s-->NeedCreateTable-->pre:[%d-%d-%d] cur:[%d-%d-%d]---nRet=%d"),
 					pGpsInfo->COMMADDR,
 					m_tm_TableNameTime.tm_year,m_tm_TableNameTime.tm_mon,m_tm_TableNameTime.tm_mday,
-					pCurGpsTm.tm_year,pCurGpsTm.tm_mon,pCurGpsTm.tm_mday);
+					pCurGpsTm.tm_year,pCurGpsTm.tm_mon,pCurGpsTm.tm_mday,nCreateRet);
 				WriteLog(LOGNAME,logLevelInfo,strLog);
 				OutputDebugString(strLog);
-				CreateTable(&pCurGpsTm);
 			}
 
 			//ISTATE 0 表示正常 1表示不正常 2 表示漂移
