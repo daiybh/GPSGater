@@ -59,6 +59,7 @@ local.properties
 *.user
 *.sln.docstates
 
+
 # Build results
 [Dd]ebug/
 [Rr]elease/
@@ -80,6 +81,7 @@ local.properties
 *.vspscc
 .builds
 *.dotCover
+*.bsc
 
 ## TODO: If you have NuGet Package Restore enabled, uncomment this
 #packages/
