@@ -75,9 +75,9 @@ void LoadNmLoger()
 	mfiledir = szPath;
 	int nIndex = mfiledir.ReverseFind(_T('\\'));
 	mfiledir = mfiledir.Left(nIndex+1);
-	int	m_nChannel = GetPrivateProfileInt(_T("BASE_CONFIGURATION"),_T("ChannelID"),0, GetMgConfigFileName());
-	m_nChannel = GetChannelID();
+	int	m_nChannel = GetPrivateProfileInt(_T("GPSSet"),_T("listenPort"),110, GetMgConfigFileName());
 	{	
+		m_nChannel =m_nChannel%100;
 		cChannel[0] ='_';
 		cChannel[1] = (m_nChannel/10)+48;	
 		cChannel[2] =m_nChannel%10+48;
