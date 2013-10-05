@@ -655,8 +655,8 @@ int IsValidData(const GPSINFO *pGpsInfo)
 BOOL NeedCreateNewTable(struct tm  preTableGpsTime,struct tm * curGpsTime)
 {	
 	if(preTableGpsTime.tm_mday != curGpsTime->tm_mday 
-		&& preTableGpsTime.tm_mon!=curGpsTime->tm_mon
-		&&preTableGpsTime.tm_year !=curGpsTime->tm_year)
+		|| preTableGpsTime.tm_mon!=curGpsTime->tm_mon
+		|| preTableGpsTime.tm_year !=curGpsTime->tm_year)
 	{
 		return TRUE;
 	}
@@ -872,13 +872,25 @@ int COracleOCI_o::WriteData( const GPSINFO *pGpsInfo )
 
 	if(g_WriteData_Cnt++ %100==0 || nRet < 1)
 	{
+
 		CString strLog;
 		strLog.Format(_T("sim=%I64d-bValid=%d--judge_ret=%d--lng=%.4f  lat=%.4f speed=%s gpsTime=%s recTime=%s g_WriteData_Cnt=%I64d--nret=%d"),
 			iSim,pGpsInfo->bValid,
 			judge_ret,doubleLongitude,doubleLatitude,
 			CString(pGpsInfo->Speed),
 			CString(pGpsInfo->Time),CString(str_GpsTime),g_WriteData_Cnt,nRet);
-		WriteLog(LOGNAME,logLevelInfo,strLog);		
+		WriteLog(LOGNAME,logLevelInfo,strLog);	
+
+		struct tm pCurGpsTm,t2;
+		gpsTime.GetLocalTm(&pCurGpsTm);
+		int nNeedCreate = NeedCreateNewTable(m_tm_TableNameTime,&pCurGpsTm);
+		strLog.Format(_T("sim=%I64d time-->pre:[%d-%d-%d] cur:[%d-%d-%d]---date:%s--%d"),
+			iSim,
+			m_tm_TableNameTime.tm_year,m_tm_TableNameTime.tm_mon,m_tm_TableNameTime.tm_mday,
+			pCurGpsTm.tm_year,pCurGpsTm.tm_mon,pCurGpsTm.tm_mday,
+			CString(m_strDate),
+			nNeedCreate);
+		WriteLog(LOGNAME,logLevelInfo,strLog);
 	}
 	return nRet;
 }
