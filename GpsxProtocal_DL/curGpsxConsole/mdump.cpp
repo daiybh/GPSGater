@@ -169,8 +169,8 @@ BOOL CMiniDumper::MakeDir(CString strDir)
 	CString strDirTemp;
 	int nStart = 0;	
 
-	WCHAR strDriver[MAX_PATH];
-	WCHAR strPath[MAX_PATH];
+	TCHAR strDriver[MAX_PATH];
+	TCHAR strPath[MAX_PATH];
 	_tsplitpath_s(strDir, strDriver,_countof(strDriver), strPath,_countof(strPath), NULL,0, NULL,0);
 	strDirTemp = strDriver;
 	if (strDirTemp == _T(""))
@@ -201,7 +201,7 @@ BOOL CMiniDumper::MakeDir(CString strDir)
 	}
 	return TRUE;
 }
-
+#include <io.h>
 //查找某路径是否存在
 BOOL CMiniDumper::FindDir(CString strDir)
 {

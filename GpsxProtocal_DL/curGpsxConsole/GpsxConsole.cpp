@@ -45,7 +45,18 @@ CGpsxConsoleApp theApp;
 #include "Psapi.h"
 #include <tlhelp32.h>
 #pragma  comment(lib,"Psapi.lib")
-BOOL _IsProcessExist(CString strProPath,BOOL bFullpath=TRUE)
+BOOL _KillProcess(DWORD dwProcessID)
+{
+	HANDLE hProcess = OpenProcess(PROCESS_TERMINATE,FALSE,dwProcessID);
+	if(hProcess==NULL)return FALSE;
+
+	printf("_KillProcess----processID %d- handle [%d]\r\n",dwProcessID,hProcess);
+	return TerminateProcess(hProcess,0);
+}
+/*
+ *	@return dwProcessID
+ */
+DWORD _IsProcessExist(CString strProPath,BOOL bFullpath=TRUE)
 {
 	TCHAR buff[MAX_PATH];
 	CString strTempPath;
@@ -55,6 +66,7 @@ BOOL _IsProcessExist(CString strProPath,BOOL bFullpath=TRUE)
 	memset(buff,0,MAX_PATH);
 	info->dwSize=sizeof(PROCESSENTRY32);
 	strProPath.MakeLower();
+	DWORD dwProcessID=0;
 	if(Process32First(hfindhandle,info))        
 	{
 		do 
@@ -65,8 +77,6 @@ BOOL _IsProcessExist(CString strProPath,BOOL bFullpath=TRUE)
 				GetModuleFileNameEx(hProcess,(HMODULE)info->th32ModuleID,buff,MAX_PATH);
 				strTempPath.Format(_T("%s"),buff);
 				strTempPath.MakeLower();
-				CloseHandle(hProcess);
-				hProcess = NULL;
 				BOOL bFind = FALSE;
 				if(bFullpath && (strProPath == strTempPath))
 					bFind = TRUE;
@@ -76,16 +86,19 @@ BOOL _IsProcessExist(CString strProPath,BOOL bFullpath=TRUE)
 				}
 				if(bFind)	// && (dwProcessID == info->th32ProcessID)
 				{			
-					CloseHandle(hfindhandle);
-					delete info;
-					return TRUE;
-				}	
+					dwProcessID = info->th32ProcessID;
+					CloseHandle(hProcess);
+					hProcess = NULL;
+					break;
+				}
+				CloseHandle(hProcess);
+				hProcess = NULL;	
 			}
 		} while (Process32Next(hfindhandle,info));
 	}
 	CloseHandle(hfindhandle);
 	delete info;
-	return FALSE;
+	return dwProcessID;
 }
 BOOL _CreateProcess(CString strProcess,PROCESS_INFORMATION &pi,BOOL bService,CString strCmdLine)
 {
@@ -122,6 +135,9 @@ BOOL _CreateProcess(CString strProcess,PROCESS_INFORMATION &pi,BOOL bService,CSt
 		return FALSE;
 	}
 	strInfo.Format(_T("Create Process(%s_%d) Success!"),strProName,pi.dwProcessId);
+	CTime ti = CTime::GetCurrentTime();
+	printf("%s Create Process [%s_%d] sucess\r\n",ti.Format(_T("%Y-%m-%d %H:%M:%S")),strProName,pi.dwProcessId);
+
 	//_AddTrace(strInfo);
 	strInfo.Format(_T("Create Process(%s_%d) Success!(strCmdLine:%s)"),strProName,pi.dwProcessId,strCmdLine);
 	//WriteLog(_T("Channel_Control_Serive"),logLevelInfo,strInfo);
@@ -141,6 +157,20 @@ void openCommandWindow(){
 	int i = setvbuf(stdout,NULL,_IONBF,0);
 
 }
+#include <conio.h>
+int getch2(long delay_seconds){
+	int keyCode = 0;
+	for(int i=0;i<delay_seconds/100;i++){
+		if(_kbhit()){
+			keyCode = getch();
+			printf("k--%d\r\n",keyCode);
+			break;
+		}
+		//printf("%d",i);
+		Sleep(100);
+	}
+	return keyCode;
+}
 BOOL CGpsxConsoleApp::InitInstance()
 {
 	AfxEnableControlContainer();
@@ -153,23 +183,43 @@ BOOL CGpsxConsoleApp::InitInstance()
 	int nRet = strProcess.Find("daemon.exe");
 	if(__argc==1 && nRet>0 )//带参数
 	{
-		printf("守护进程");
+		printf("守护进程\r\nPress 'E' to exit\r\n");
 		nRet = strProcess.Find("daemon");
 		strProcess.Delete(nRet,6);
-		DeleteFile(strProcess);
-		CopyFile(result,strProcess,FALSE);
+		HANDLE hProcess=NULL;
+		DWORD dwProcessID=0;
 		while(1){
-			if(!_IsProcessExist(strProcess)){
-				PROCESS_INFORMATION pi;
-				_CreateProcess(strProcess,pi,FALSE,"");
+			if((dwProcessID=_IsProcessExist(strProcess))==0){
+				if(DeleteFile(strProcess)){
+					if(CopyFile(result,strProcess,FALSE)){
+						PROCESS_INFORMATION pi;
+						_CreateProcess(strProcess,pi,FALSE,"");
+						hProcess = pi.hProcess;
+						dwProcessID = pi.dwProcessId;
+					}
+				}//printf("pi-->%d-->%d\r\n",hProcess,pi.dwProcessId);
+			}else{
+				//printf("IS-->%d\r\n",hProcess);
 			}
-			Sleep(30*1000);
+			//Sleep(30*1000);
+			if(getch2(3*1000) == 101){
+				_KillProcess(dwProcessID);
+				int i=0;
+				do{
+					Sleep(i*100);
+					BOOL bRet = DeleteFile(strProcess);
+					printf("%s---%d\r\n",strProcess,bRet);
+				}while(i++<4);
+				return 1;
+			}
 		}
 	}
 
 	CString strLogServer("sonaps.logger.service.exe");
 	
 	//*
+	HANDLE hProcess=NULL;
+	DWORD dwProcessID = 0;
 	if(!_IsProcessExist(strLogServer,FALSE)){
 		PROCESS_INFORMATION pi;
 		_CreateProcess(strLogServer,pi,FALSE,"");
