@@ -190,14 +190,19 @@ BOOL CGpsxConsoleApp::InitInstance()
 		DWORD dwProcessID=0;
 		while(1){
 			if((dwProcessID=_IsProcessExist(strProcess))==0){
-				if(DeleteFile(strProcess)){
+				int nRet = DeleteFile(strProcess);
+				if(nRet || GetLastError()==2){
 					if(CopyFile(result,strProcess,FALSE)){
 						PROCESS_INFORMATION pi;
 						_CreateProcess(strProcess,pi,FALSE,"");
 						hProcess = pi.hProcess;
 						dwProcessID = pi.dwProcessId;
+					}else{
 					}
-				}//printf("pi-->%d-->%d\r\n",hProcess,pi.dwProcessId);
+				}else{
+				//	printf("deletefile %d,%d\r\n",nRet,GetLastError());
+				}
+				//printf("pi-->%d-->%d\r\n",hProcess,pi.dwProcessId);
 			}else{
 				//printf("IS-->%d\r\n",hProcess);
 			}
