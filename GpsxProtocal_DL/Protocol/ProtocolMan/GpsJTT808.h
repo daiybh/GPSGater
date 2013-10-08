@@ -58,6 +58,11 @@ private:
 		char sim[12];
 		WORD msgSN;
 		tagMsgPaket msgPaket;
+		tagMsgHead(){
+			ZeroMemory(this,sizeof(tagMsgHead));
+		}
 	};
 	int diposMsgBody(tagMsgHead msgHead,const BYTE *pMsgBody,GPSINFO *gpsInfo);
+	int getFullCmdLine(char *pDestBuf,tagMsgHead *pMsgHead,char *pstrMsgBody,int nMsgBodyLen);
+	DWORD m_MsgSN;//全局消息流水号
 };

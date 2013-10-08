@@ -51,7 +51,9 @@ public:
 	 */
 	virtual long getConsole2GPSData(const char *fromConsole_srcBuf,GPSCommand *pGpsCommand);
 private:
-protected:
+protected://公共 工具函数
+	int getbin(int x);
+	int HexToBin(char *pHex,char **ppBin);
 	void Write_Log(char*pLogName,const char *pLogContent);
 	void Write_Log(const char *pLogContent);
 
@@ -80,6 +82,7 @@ private:
 	long handleCmd_Set_Oil_LowAlarm(GPSCommand*pGpsCommand);
 	long handleCmd_Get_Device_Version_and_SN(GPSCommand*pGpsCommand);
 	long handleCmd_Set_Reset_Mileage_and_Runtime(GPSCommand*pGpsCommand);
+	long handleCmd_DirectToGPS_command(GPSCommand *pGpsCommand);
 
 
 	///////////////

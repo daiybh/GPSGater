@@ -30,6 +30,35 @@ GpsYouHao	m_gpsYouHao;
 GpsXingRui	m_gpsRuiXing;
 GPS_MeiTrack	m_gpsMeiTrack;
 GpsJTT808		m_gpsJTT808;
+
+int GPSClass::getbin(int x)
+{
+	if(x>='0' && x<='9')
+		return x-'0';
+
+	if(x>='A' && x<='F')
+		return x-'A'+10;
+	return x-'a'+10;
+}
+int GPSClass::HexToBin(char *pHex,char **ppBin)
+{
+	int nLen = strlen(pHex);
+	char *pBin = *ppBin;
+	int nBinLen = 0;
+	for(int i=0;i<nLen;)
+	{
+		char p10=pHex[i];
+		if(p10==' '){
+			i++;
+			continue;
+		}
+		char p00=pHex[i+1];
+		*pBin++ = getbin(p10)*16+getbin(p00);
+		i+=2;
+		nBinLen++;
+	}
+	return nBinLen;
+}
 GPSClass * GPSClass::getProtocol( char *buf,GPSINFO *pGpsInfo )
 {
 	if(m_gpsMeiTrack.isThisProtocol(buf,pGpsInfo))return &m_gpsMeiTrack;
@@ -270,6 +299,30 @@ long GPSClass::handleCmd_CacelArea(GPSCommand*pGpsCommand)
 	pGpsCommand->pVoid = (int*)nRecordID;		
 	return pGpsCommand->nLenCommandLine;
 }
+
+long GPSClass::handleCmd_DirectToGPS_command( GPSCommand *pGpsCommand )
+{
+//DirectToGPS_command
+
+	TCHAR pTemp[100];
+	//strcpy(pGpsCommand->strCommandLine,m_pXmlParser->GetNodeText(_T("command"),pTemp));
+	pGpsCommand->commandType = CmdType(cmdType_ToGPS+2);
+	//<directtogps_command><deviceid></deviceid><command></command><toBin>1</toBin></directtogps_command>
+	BOOL bNeedToBin = atoi(m_pXmlParser->GetNodeText("tobin",pTemp));
+	char *pDestBuffer = pGpsCommand->strCommandLine;
+
+	if(bNeedToBin) pDestBuffer = pTemp;
+
+	int nLen = m_pXmlParser->GetNodeText_len(_T("command"),pDestBuffer);
+	if(bNeedToBin){
+		nLen = HexToBin(pDestBuffer,&pGpsCommand->strCommandLine);
+	}
+
+	pGpsCommand->nLenCommandLine = (nLen==1)?strlen(pGpsCommand->strCommandLine):nLen;
+
+	return pGpsCommand->nLenCommandLine;
+}
+
 long GPSClass::handleCmd_overspeed(GPSCommand*pGpsCommand)
 {
 	TCHAR pTemp[100];
@@ -300,12 +353,12 @@ long GPSClass::handleCmd_overspeed(GPSCommand*pGpsCommand)
 	pstOverSpeed->nCountinue = atoi(m_pXmlParser->GetNodeText(_T("countinue"),pTemp));
 	int nValid = atoi(m_pXmlParser->GetNodeText("m",pTemp));
 
-	_handleCmd_overspeed(pGpsCommand,pstOverSpeed->nMaxSpeed,pstOverSpeed->nMinSpeed,pstOverSpeed->nCountinue);
+	int nLen = _handleCmd_overspeed(pGpsCommand,pstOverSpeed->nMaxSpeed,pstOverSpeed->nMinSpeed,pstOverSpeed->nCountinue);
 
 	
 	pGpsCommand->pVoid = pstOverSpeed;	
 
-	pGpsCommand->nLenCommandLine = strlen(pGpsCommand->strCommandLine);
+	pGpsCommand->nLenCommandLine = (nLen==1)?strlen(pGpsCommand->strCommandLine):nLen;
 	pGpsCommand->strCommandLine[pGpsCommand->nLenCommandLine+1] = '\0';			
 	return pGpsCommand->nLenCommandLine;
 }
@@ -319,7 +372,11 @@ long GPSClass::getConsole2GPSData( const char *fromConsole_srcBuf,GPSCommand *pG
 	do{
 		TCHAR*pTemp = chXMlValue;
 		// Ω‚Œˆ∏˜÷÷√¸¡Ó
-		if(strcmp(chXMlValue,"setarea")==0)
+		if(strcmp(chXMlValue,"directtogps_command")==0)
+		{			
+			nRet = handleCmd_DirectToGPS_command(pGpsCommand);
+		}
+		else if(strcmp(chXMlValue,"setarea")==0)
 		{
 			nRet = handleCmd_SetArea(pGpsCommand);			
 		}
@@ -383,7 +440,7 @@ long GPSClass::getConsole2GPSData( const char *fromConsole_srcBuf,GPSCommand *pG
 		{
 			nRet = handleCmd_Set_Reset_Mileage_and_Runtime(pGpsCommand);
 		}
-		else
+		else 
 		{
 			break;
 		}

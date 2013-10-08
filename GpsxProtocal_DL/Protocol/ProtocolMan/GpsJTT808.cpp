@@ -3,6 +3,7 @@
 
 GpsJTT808::GpsJTT808(void)
 {
+	m_MsgSN =0;
 }
 
 GpsJTT808::~GpsJTT808(void)
@@ -176,14 +177,52 @@ long GpsJTT808::getGpsInfo( char *pSrcbuf,int nbufLen,GPSINFO &gpsInfo )
 	//return nRet>0 ?(iTrueLen+1):0;
 }
 
-int getbin(int x)
+int GpsJTT808::getFullCmdLine(char *pDestBuf,tagMsgHead *pMsgHead,char *pstrMsgBody,int nMsgBodyLen)
 {
-	if(x>='0' && x<='9')
-		return x-'0';
+/*
+	msgHead.msgID=nMsgID;
+	msgHead.msgSN = atoi(gpsInfo.SEQ);
+	msgHead.msgBodyAttribute.bPaket=0;
+	msgHead.msgBodyAttribute.Rev =0;
+	msgHead.msgBodyAttribute.msgDecodeType=0;
 
-	if(x>='A' && x<='F')
-		return x-'A'+10;
-	return x-'a'+10;
+	strcpy(msgHead.sim,gpsInfo.COMMADDR);//bcd[6]
+*/	//msgHead.msgSN=atoi(gpsInfo.PreFix);
+	char pTempBuf[60];
+	ZeroMemory(pTempBuf,60);
+	int nCurpos = 0;
+	pTempBuf[nCurpos++] = 0x7E;
+	pTempBuf[nCurpos++] =pMsgHead->msgID/256;
+	pTempBuf[nCurpos++] = pMsgHead->msgID;
+	nCurpos++;//msgBodyAttribute/256
+	nCurpos++;//msgBodyAttribute
+	for(int i=0;i<12;i+=2){			
+		pTempBuf[nCurpos++]=((pMsgHead->sim[i]-0x30)*16)|(pMsgHead->sim[i+1]-0x30);			
+	}
+	pTempBuf[nCurpos++]=pMsgHead->msgSN/256;
+	pTempBuf[nCurpos++]=pMsgHead->msgSN;
+	///header End//////////////////////////
+	//body
+	//0 		终端消息流水号word
+	//2			消息IDword
+	//4			结果byte
+	pMsgHead->msgBodyAttribute.msgBodyLen=nMsgBodyLen;
+
+	//从13位开始是body
+	memcpy(pTempBuf+nCurpos,pstrMsgBody,nMsgBodyLen);
+
+	nCurpos+=nMsgBodyLen;
+
+	WORD msgBodyAttribute = pMsgHead->msgBodyAttribute.getWordValue();
+	pTempBuf[3] = msgBodyAttribute/256;
+	pTempBuf[4] = msgBodyAttribute;
+
+	getCheckCode_xor(pTempBuf+1,nCurpos,pTempBuf+nCurpos);
+	memset(pDestBuf,0,nCurpos+5);
+	int nLen = ZhuanYi(pTempBuf+1,pDestBuf,nCurpos);
+	pDestBuf[nLen]=0x7E;
+	return nLen+1;
+
 }
 BOOL GpsJTT808::getResMsg( char *strDestBuf,GPSINFO &gpsInfo )
 {
@@ -193,13 +232,15 @@ BOOL GpsJTT808::getResMsg( char *strDestBuf,GPSINFO &gpsInfo )
 		//鉴权码 返回
 		tagMsgHead msgHead;
 		msgHead.msgID=nMsgID;
+		msgHead.msgSN = MAKEWORD(gpsInfo.SEQ[1],gpsInfo.SEQ[0]);//atoi(gpsInfo.SEQ);
 		msgHead.msgBodyAttribute.bPaket=0;
 		msgHead.msgBodyAttribute.Rev =0;
 		msgHead.msgBodyAttribute.msgDecodeType=0;
 
-		strcpy(msgHead.sim,gpsInfo.COMMADDR);//bcd[6]
+		memcpy(msgHead.sim,gpsInfo.COMMADDR,strlen(gpsInfo.COMMADDR));//bcd[6]
 		//msgHead.msgSN=atoi(gpsInfo.PreFix);
-		char pTempBuf[20];
+/*		char pTempBuf[20];
+		ZeroMemory(pTempBuf,20);
 		pTempBuf[0] = 0x7E;
 		pTempBuf[1] = msgHead.msgID/256;
 		pTempBuf[2] = msgHead.msgID;
@@ -209,21 +250,18 @@ BOOL GpsJTT808::getResMsg( char *strDestBuf,GPSINFO &gpsInfo )
 		}
 
 
-		pTempBuf[11]=gpsInfo.SEQ[0];
-		pTempBuf[12]=gpsInfo.SEQ[1];
-		///header End//////////////////////////
-		//body
-		//0 		终端消息流水号word
-		//2			消息IDword
-		//4			结果byte
+		pTempBuf[11]=msgHead.msgSN/256;
+		pTempBuf[12]=msgHead.msgSN;
 
-		pTempBuf[13]=gpsInfo.SEQ[0];
-		pTempBuf[14]=gpsInfo.SEQ[1];
+
+
+		pTempBuf[13]=msgHead.msgSN/256;
+		pTempBuf[14]=msgHead.msgSN;
 		msgHead.msgBodyAttribute.msgBodyLen=0;
 		if(msgHead.msgID== 0x8001){
 			msgHead.msgBodyAttribute.msgBodyLen=5;
-			pTempBuf[15]=gpsInfo.SEQ[2];
-			pTempBuf[16]=gpsInfo.SEQ[3];	
+			pTempBuf[15]=gpsInfo.SEQ[3];
+			pTempBuf[16]=gpsInfo.SEQ[4];	
 			pTempBuf[17]= 0;
 			nCurpos = 17;
 		}else if(msgHead.msgID== 0x8100){
@@ -240,27 +278,42 @@ BOOL GpsJTT808::getResMsg( char *strDestBuf,GPSINFO &gpsInfo )
 			msgHead.msgBodyAttribute.msgBodyLen=nCurpos-13;
 			nCurpos--;
 		}
-
 		WORD msgBodyAttribute = msgHead.msgBodyAttribute.getWordValue();
 		pTempBuf[3] = msgBodyAttribute/256;
 		pTempBuf[4] = msgBodyAttribute;
-
 		getCheckCode_xor(pTempBuf+1,nCurpos,&pTempBuf[nCurpos+1]);
 		memset(strDestBuf,0,30);
 		int nLen = ZhuanYi(pTempBuf+1,strDestBuf,nCurpos+1);
 		strDestBuf[nLen]=0x7E;
-        // 0  1 2  3 4  5 6 7 8 9 0  1 2  3 4 5 6 7
-		//7e 0102 0007 015700000001 0da7 726f70656e7465 8e 7e
-		//7e 0102 0007 015700000001 0dad 726f70656e7465 84 7e
-		//7e 8001 0008 015700000001 0dac 0dac800100     35 7e
-
-		//7e 0102 0007 015700000001 0007 726f70656e7465 23 7e			
-		//7e 8001 0005 015700000001 0007 0007800100     52 7e
-		//7e 8001 0005 015700000001 0007 010200         d7 7e
-		//7e 0100 002f 015728572436 002b 00111111373034303444522d3230413120202020202020202020202020526f706530303101d4c14147323031310000787e
-		//7e 8100 000a 015728572436 002b 0072 6f70656e7465 ec 7e
 		return nLen+1;
 
+/**/
+		///header End//////////////////////////
+		//body
+		//0 		终端消息流水号word
+		//2			消息IDword
+		//4			结果byte
+		char pMsgBody[40];
+		int nMsgBodyPos=0;
+		pMsgBody[nMsgBodyPos++] = msgHead.msgSN/256;
+		pMsgBody[nMsgBodyPos++] = msgHead.msgSN;
+		
+		if(msgHead.msgID== 0x8001){
+			pMsgBody[nMsgBodyPos++] = gpsInfo.SEQ[3];
+			pMsgBody[nMsgBodyPos++] = gpsInfo.SEQ[4];
+			pMsgBody[nMsgBodyPos++] =0;
+		}else if(msgHead.msgID == 0x8100){
+			pMsgBody[nMsgBodyPos++] =0;
+			//726f70656e7465
+			char *pCode ="726f70656e7465";
+			int sLen = strlen(pCode);			
+			for(int i=0;i<sLen;i+=2){
+				pMsgBody[nMsgBodyPos++] =getbin(pCode[i])*16|getbin(pCode[i+1]);
+			}
+		}
+		msgHead.msgBodyAttribute.msgBodyLen = nMsgBodyPos;
+		return getFullCmdLine(strDestBuf,&msgHead,pMsgBody,nMsgBodyPos);
+		
 	}
 	return 0;
 }
@@ -403,8 +456,10 @@ int GpsJTT808::diposMsgBody( tagMsgHead msgHead,const BYTE *pMsgBody,GPSINFO *gp
 		gpsInfo->SEQ[0] = msgHead.msgSN/256;
 		gpsInfo->SEQ[1] = msgHead.msgSN;
 
-		gpsInfo->SEQ[2] = msgHead.msgID/256;
-		gpsInfo->SEQ[3] = msgHead.msgID;
+		gpsInfo->SEQ[2] ='\0';
+
+		gpsInfo->SEQ[3] = msgHead.msgID/256;
+		gpsInfo->SEQ[4] = msgHead.msgID;
 		nRet = 1;
 	}
 	return nRet;
@@ -423,7 +478,62 @@ BOOL GpsJTT808::isThisProtocol( char *buf ,GPSINFO *pGpsInfo)
 
 long GpsJTT808::_handleCmd_overspeed( GPSCommand*pGpsCommand,int nMaxSpeed,int nMinSpeed,int nContinue,int nValid/*=1*/ )
 {
-	return 0;
+	tagMsgHead msgHead;
+
+	msgHead.msgID=0x8103;
+	msgHead.msgSN =m_MsgSN++;
+	msgHead.msgBodyAttribute.bPaket=0;
+	msgHead.msgBodyAttribute.Rev =0;
+	msgHead.msgBodyAttribute.msgDecodeType=0;
+	
+	memcpy(msgHead.sim,pGpsCommand->strSim,strlen(pGpsCommand->strSim));
+
+	char pMsgBody[40];
+	int nMsgBodyPos = 0;
+	int nParamsCount=2;
+	pMsgBody[nMsgBodyPos++] = nParamsCount;
+
+	struct tagParam{
+		DWORD dwParamID;
+		BYTE  byteParamLen;
+		char *pstrParam;
+	};
+	{//最大速度 km/h
+		tagParam tagparam ;
+		tagparam.dwParamID = 0x0055;
+		tagparam.byteParamLen = sizeof(DWORD);
+		pMsgBody[nMsgBodyPos++] = tagparam.dwParamID/256/256/256;
+		pMsgBody[nMsgBodyPos++] = tagparam.dwParamID/256/256;
+		pMsgBody[nMsgBodyPos++] = tagparam.dwParamID/256;
+		pMsgBody[nMsgBodyPos++] = tagparam.dwParamID;
+
+		pMsgBody[nMsgBodyPos++] = tagparam.byteParamLen;
+
+		pMsgBody[nMsgBodyPos++] = nMaxSpeed/256/256/256;
+		pMsgBody[nMsgBodyPos++] = nMaxSpeed/256/256;
+		pMsgBody[nMsgBodyPos++] = nMaxSpeed/256;
+		pMsgBody[nMsgBodyPos++] = nMaxSpeed;
+	}
+	{
+		//持续时间 s
+		tagParam tagparam ;
+		tagparam.dwParamID = 0x0056;
+		tagparam.byteParamLen = sizeof(DWORD);
+		pMsgBody[nMsgBodyPos++] = tagparam.dwParamID/256/256/256;
+		pMsgBody[nMsgBodyPos++] = tagparam.dwParamID/256/256;
+		pMsgBody[nMsgBodyPos++] = tagparam.dwParamID/256;
+		pMsgBody[nMsgBodyPos++] = tagparam.dwParamID;
+
+		pMsgBody[nMsgBodyPos++] = tagparam.byteParamLen;
+
+		pMsgBody[nMsgBodyPos++] = nContinue/256/256/256;
+		pMsgBody[nMsgBodyPos++] = nContinue/256/256;
+		pMsgBody[nMsgBodyPos++] = nContinue/256;
+		pMsgBody[nMsgBodyPos++] = nContinue;
+	}
+	int nlen = getFullCmdLine(pGpsCommand->strCommandLine,&msgHead,pMsgBody,nMsgBodyPos);
+	pGpsCommand->nLenCommandLine = nlen;
+	return nlen;
 }
 
 long GpsJTT808::_handleCmd_SetArea( GPSCommand*pGpsCommand,TCHAR *pAreaID,TCHAR *palertType,TCHAR *pType,TCHAR *pLeftLat,TCHAR *prightlat,TCHAR *pleftlng,TCHAR *prightlng,TCHAR *pcenterlat,TCHAR *pcenterlng,TCHAR *pRadius )
