@@ -57,22 +57,6 @@ int HexToBin(char *pHex,char **ppBin)
 		ZeroMemory(*ppBin,nLen);
 	}
 	char *pBin = *ppBin;
-	/*
-	printf("nlen:%d\r\n%s\r\n",strlen(pHex),pHex);
-	for (int i=0;i<nLen;i++)
-	{		
-			printf("%d",i%10);
-	}
-	printf("\r\n");
-	for (int i=0;i<nLen;i++)
-	{		
-		if(i%10 ==0 )
-			printf("%d",i/10);
-		else
-			printf(((i%10)==0)?"0":"-");
-	}
-	printf("\r\n");
-	*/
 	int nBinLen = 0;
 	for(int i=0;i<nLen;)
 	{
@@ -195,8 +179,32 @@ void testMod()
 	testMod("01614058");
 	testMod("06c2e200");
 }
+#include "tinyxml2.h"
+int example_3()
+{
+	static const char* xml =
+		"<?xml version=\"1.0\"?>"
+		"<!DOCTYPE PLAY SYSTEM \"play.dtd\">"
+		"<PLAY>"
+		"<TITLE>A Midsummer Night's Dream</TITLE>"
+		"</PLAY>";
+
+	tinyxml2::XMLDocument doc;
+	doc.Parse( xml );
+
+	tinyxml2::XMLElement* titleElement = doc.FirstChildElement( "PLAY" )->FirstChildElement( "TITLE" );
+	const char* title = titleElement->GetText();
+	printf( "Name of play (1): %s\n", title );
+
+	tinyxml2::XMLText* textNode = titleElement->FirstChild()->ToText();
+	title = textNode->Value();
+	printf( "Name of play (2): %s\n", title );
+
+	return doc.ErrorID();
+}
 int _tmain(int argc, TCHAR* argv[], TCHAR* envp[])
 {
+	example_3();
 // 	FLAGS_log_dir="D:\\NMLOG2\\";
 // 	google::InitGoogleLogging(argv[0]);
 // 	//google::SetLogDestination(0,"info.log");

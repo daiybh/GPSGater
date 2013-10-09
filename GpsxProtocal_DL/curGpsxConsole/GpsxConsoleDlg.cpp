@@ -14,6 +14,11 @@ static char THIS_FILE[] = __FILE__;
 /////////////////////////////////////////////////////////////////////////////
 // CAboutDlg dialog used for App About
 
+typedef long (__stdcall *LoadLibrary_start)( unsigned __int64 &iLastDataTime,DWORD &dwMapCount);
+typedef long (__stdcall *LoadLibrary_stop)();
+LoadLibrary_start llstart=NULL;
+LoadLibrary_stop  llstop=NULL;
+HMODULE m_hDevxGps=NULL;
 class CAboutDlg : public CDialog
 {
 public:
@@ -186,7 +191,7 @@ void CGpsxConsoleDlg::OnBstart()
 void CGpsxConsoleDlg::OnBstop() 
 {
 	// TODO: Add your control notification handler code here
-	stop();
+	if(llstop)llstop();
 	m_bRun = false;
 	setStatus(m_bRun);
 }
@@ -245,7 +250,33 @@ void CGpsxConsoleDlg::startMonitor()
 {
 	m_intLastDataTime = 0;
 	m_dwCount = 0;
-	start(m_intLastDataTime,m_dwCount);
+	if(m_hDevxGps==NULL)
+	{
+		m_hDevxGps= LoadLibrary("DevxGps.dll");
+	}
+	if(m_hDevxGps==NULL)
+	{
+		CString strTm;
+		strTm.Format("LoadLibrary devxGps.dll failed.%d",GetLastError());
+		SetDlgItemText(IDC_EINFO,strTm);
+		return;
+	}
+	if(llstart==NULL)
+		llstart = (LoadLibrary_start) GetProcAddress(m_hDevxGps, "start" );
+	if(llstop ==NULL)
+		llstop = (LoadLibrary_stop) GetProcAddress(m_hDevxGps, "stop" );
+	if(llstart==NULL || llstop==NULL)
+	{
+		CString strTm;
+		strTm.Format("GetProcAddress from devxGps.dll failed.%d.llstart=%x llstop=%x",GetLastError(),llstart,llstop);
+		SetDlgItemText(IDC_EINFO,strTm);
+
+		FreeLibrary(m_hDevxGps);
+		m_hDevxGps = NULL;
+		return;
+	}
+
+	llstart(m_intLastDataTime,m_dwCount);
 	m_bRun = true;
 	setStatus(m_bRun);	
 }

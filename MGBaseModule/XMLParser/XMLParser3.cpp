@@ -16,15 +16,6 @@ static char THIS_FILE[]=__FILE__;
 // Construction/Destruction
 //////////////////////////////////////////////////////////////////////
 
-BOOL I_XMLParser::CreateInstance(I_XMLParser **ppIXMLParser)
-{
-	if(ppIXMLParser==NULL)
-		return FALSE;
-	*ppIXMLParser = (I_XMLParser *)new CXMLParser3();
-	if(NULL == *ppIXMLParser)return FALSE;
-	return TRUE;
-}
-
 
 
 CXMLParser3::CXMLParser3()

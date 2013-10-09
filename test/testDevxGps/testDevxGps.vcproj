@@ -200,6 +200,10 @@
 				RelativePath=".\testDevxGps.cpp"
 				>
 			</File>
+			<File
+				RelativePath=".\tinyxml2.cpp"
+				>
+			</File>
 		</Filter>
 		<Filter
 			Name="Í·ÎÄ¼þ"
@@ -220,6 +224,10 @@
 			</File>
 			<File
 				RelativePath=".\testDevxGps.h"
+				>
+			</File>
+			<File
+				RelativePath=".\tinyxml2.h"
 				>
 			</File>
 		</Filter>

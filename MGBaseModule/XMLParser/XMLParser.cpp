@@ -61,3 +61,15 @@ BOOL CXMLParserApp::InitInstance()
 
 	return TRUE;
 }
+#include "I_XMLParser.h"
+#include "XMLParser3.h"
+#include "tinyXMLParser.h"
+BOOL I_XMLParser::CreateInstance(I_XMLParser **ppIXMLParser)
+{
+	if(ppIXMLParser==NULL)
+		return FALSE;
+	//*ppIXMLParser = (I_XMLParser *)new CXMLParser3();
+	*ppIXMLParser = (I_XMLParser *)new CTinyXMLParser();
+	if(NULL == *ppIXMLParser)return FALSE;
+	return TRUE;
+}

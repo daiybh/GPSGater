@@ -306,6 +306,14 @@
 				</FileConfiguration>
 			</File>
 			<File
+				RelativePath=".\tinyxml2.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\tinyXMLParser.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\XMLParser.cpp"
 				>
 			</File>
@@ -333,6 +341,14 @@
 			</File>
 			<File
 				RelativePath=".\targetver.h"
+				>
+			</File>
+			<File
+				RelativePath=".\tinyxml2.h"
+				>
+			</File>
+			<File
+				RelativePath=".\tinyXMLParser.h"
 				>
 			</File>
 			<File

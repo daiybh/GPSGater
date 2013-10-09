@@ -68,16 +68,33 @@ void CGPSGateAdpterApp::InitAdpter()
 	if(m_bInitAdpter)return;
 	WriteLog(LOGNAME,logLevelError,_T("CGPSGateAdpterApp::InitInstance"));
 
-	if(m_pGPS_Socket==NULL)
-		m_pGPS_Socket = new CGPS_Socket();
-	if(m_pDataOpter==NULL)
-		m_pDataOpter  = new DataOpter();
-	if(m_pGetCommand==NULL)
-		m_pGetCommand = new GetCommand();
 
+	printf("begin new()\r\n");
+	if(m_pGPS_Socket==NULL)
+	{
+		printf("m_pGPS_Socket = new CGPS_Socket();\r\n");
+		m_pGPS_Socket = new CGPS_Socket();
+	}
+	if(m_pDataOpter==NULL)
+	{
+		printf("m_pDataOpter  = new DataOpter();\r\n");
+		m_pDataOpter  = new DataOpter();
+	}
+	if(m_pGetCommand==NULL)
+	{
+		printf("m_pGetCommand = new GetCommand();\r\n");
+		m_pGetCommand = new GetCommand();
+	}
+	printf("End new()\r\n");
+
+	printf("begin m_pGPS_Socket->startwork()\r\n");
 	int nRet = m_pGPS_Socket->StartWork();
+
+	printf("begin m_pDataOpter->startwork()\r\n");
 	int nRet1 = m_pDataOpter->StartWork();
+	printf("begin m_pGetCommand->startwork()\r\n");
 	int nRet2 = m_pGetCommand->StartWork();
+	printf("begin startwork()\r\n");
 	CString sLog;
 
 	sLog.Format(_T("m_pGPS_Socket->StartWork()=%d--%d--%d"),nRet,nRet1,nRet2);
