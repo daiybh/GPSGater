@@ -374,7 +374,17 @@ int GpsJTT808::diposMsgBody( tagMsgHead msgHead,const BYTE *pMsgBody,GPSINFO *gp
 					char time[6];
 					void copy2GpsInfo(GPSINFO *gpsinfo)
 					{
-						gpsinfo->nWarnFlag = alarmFlag;
+						gpsinfo->nWarnFlag=0;
+						if(alarmFlag&0x02==0x02)
+							gpsinfo->nWarnFlag|=WAR_OVERSPEED;
+
+						/*if(alarmFlag&0x1000==0x1000)
+							gpsinfo->nWarnFlag |=WAR_OVERSPEED;
+						/**/
+						if(alarmFlag&0x100000 == 0x100000)
+							gpsinfo->nWarnFlag |=WAR_INZONE;
+
+//						gpsinfo->nWarnFlag = alarmFlag;
 						sprintf(gpsinfo->Latitude,"%f",(double(latitude))/1000000);
 
 						sprintf(gpsinfo->Longitude,"%f",(double(longitude))/1000000);

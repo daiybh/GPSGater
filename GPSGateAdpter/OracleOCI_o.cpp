@@ -211,6 +211,8 @@ JUDGE_RET COracleOCI_o::judge_GPSData( const GPSINFO* pGpsInfo,const INT64 *iSim
 		{
 			return RET_OVERAREA_IN;
 		}
+		if(pGpsInfo->nWarnFlag&WAR_OVERSPEED)
+			return RET_OVERSPEED;
 	}
 	int nCurHeading = atoi(pGpsInfo->Heading);
 	//判断 与上次的坐标是否一样，一样就不加入表
