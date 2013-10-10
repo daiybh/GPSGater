@@ -86,7 +86,6 @@ int DataOpter::initTCP()
 	}
 	return 1;
 }
-
 int DataOpter::Init()
 {
 	//initTCP();
@@ -107,20 +106,20 @@ int DataOpter::Init()
 	strcpy_s(m_strMgConfigFile_Absolute_Path,m_strModulePath); 
 	strcat_s(m_strMgConfigFile_Absolute_Path,_countof(m_strMgConfigFile_Absolute_Path),("MgCaptureCfg.ini"));
 
-	GetPrivateProfileStringA("Oracle","user","hylogistics",g_user,31,m_strMgConfigFile_Absolute_Path);
-	GetPrivateProfileStringA("Oracle","password","hylogistics",g_pass_word,31,m_strMgConfigFile_Absolute_Path);
-	GetPrivateProfileStringA("Oracle","SID","kliffv",g_servername,31,m_strMgConfigFile_Absolute_Path);
-	GetPrivateProfileStringA("Oracle","serverAddr","127.0.0.1",g_serverAddr,31,m_strMgConfigFile_Absolute_Path);
+	GetPrivateProfileString("Oracle","user","hylogistics",g_user,31,m_strMgConfigFile_Absolute_Path);
+	GetPrivateProfileString("Oracle","password","hylogistics",g_pass_word,31,m_strMgConfigFile_Absolute_Path);
+	GetPrivateProfileString("Oracle","SID","kliffv",g_servername,31,m_strMgConfigFile_Absolute_Path);
+	GetPrivateProfileString("Oracle","serverAddr","127.0.0.1",g_serverAddr,31,m_strMgConfigFile_Absolute_Path);
 
 	char *pServer = g_serverAddr;
 	if(g_serverAddr=="null")
 		pServer =NULL;
-	BOOL bInsert = GetPrivateProfileIntA("Oracle","insertAsNew",0,m_strMgConfigFile_Absolute_Path);
-	DWORD dwUpdateVehicleTime = GetPrivateProfileIntA("Oracle","updateVehicle",30,m_strMgConfigFile_Absolute_Path);
+	BOOL bInsert = GetPrivateProfileInt("Oracle","insertAsNew",0,m_strMgConfigFile_Absolute_Path);
+	DWORD dwUpdateVehicleTime = GetPrivateProfileInt("Oracle","updateVehicle",30,m_strMgConfigFile_Absolute_Path);
 
 	dwUpdateVehicleTime = dwUpdateVehicleTime*60*1000;
 
-	m_pOracleOCI->m_dwLimit_MinSpeed = GetPrivateProfileIntA("Oracle","limit_minSpeed",7,m_strMgConfigFile_Absolute_Path);
+	m_pOracleOCI->m_dwLimit_MinSpeed = GetPrivateProfileInt("Oracle","limit_minSpeed",7,m_strMgConfigFile_Absolute_Path);
 
 	m_pOracleOCI->m_dwLimit_MaxDistance = (m_pOracleOCI->m_dwLimit_MinSpeed*30*1000)/3600;
 	if(m_pOracleOCI->m_dwLimit_MinSpeed <=0)

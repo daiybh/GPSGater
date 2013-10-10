@@ -41,9 +41,41 @@ inline LPCTSTR GetMgConfigFileName()
 	}
 	return m_strMgConfigFile_Absolute_Path;
 }
+inline void GetPrivateProfileStringA_(
+							   __in_opt LPCSTR lpAppName,
+							   __in_opt LPCSTR lpKeyName,
+							   __in_opt LPCSTR lpDefault,
+							   __out_ecount_part_opt(nSize, return + 1) LPSTR lpReturnedString,
+							   __in     DWORD nSize,
+							   __in_opt LPCSTR lpFileName)
+{
+	int nRet = ::GetPrivateProfileString(lpAppName,lpKeyName,lpDefault,lpReturnedString,nSize,lpFileName);
+	printf("GetPricStr:%d-lpAppName:%s,lpKeyName:%s-Default:%s--return:%s---last:%d\r\n",nRet,lpAppName,lpKeyName,lpDefault,lpReturnedString,GetLastError());
+	if(GetLastError()!=0)
+		WritePrivateProfileString(lpAppName,lpKeyName,lpDefault,lpFileName);
+
+}
+inline int GetPrivateProfileIntA_(
+					  __in     LPCSTR lpAppName,
+					  __in     LPCSTR lpKeyName,
+					  __in     INT nDefault,
+					  __in_opt LPCSTR lpFileName
+					  )
+{
+	char sValue[10];
+	sprintf(sValue,"%d",nDefault);
+
+	int nRet =::GetPrivateProfileInt(lpAppName,lpKeyName,nDefault,lpFileName);
+
+	printf("GetPricInt:%d-lpAppName:%s,lpKeyName:%s--last:%d\r\n",nRet,lpAppName,lpKeyName,GetLastError());
+	if(GetLastError()!=0)
+		WritePrivateProfileString(lpAppName,lpKeyName,sValue,lpFileName);
+	return nRet;
+}
 inline int GetChannelID()
 {
 	return 0;
 }
-
+#define GetPrivateProfileInt  GetPrivateProfileIntA_
+#define GetPrivateProfileString GetPrivateProfileStringA_
 #endif //define MG_TOOLS_H
