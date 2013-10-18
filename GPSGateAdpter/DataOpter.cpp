@@ -23,10 +23,10 @@ int DataOpter::writedb( const GPSINFO *pGpsInfo )
 		m_timeCount.Reset();
 
 		int nRet = m_pOracleOCI->WriteData(pGpsInfo);
-		double dTIme = m_timeCount.GetCountTime(true);
-		CString slog;
-		slog.Format(_T("writedb const time=%f"),dTIme);
-		WriteLog(_T("dvxgps_time"),logLevelError,slog);
+// 		double dTIme = m_timeCount.GetCountTime(true);
+// 		CString slog;
+// 		slog.Format(_T("writedb const time=%f"),dTIme);
+// 		WriteLog(_T("dvxgps_time"),logLevelError,slog);
 		return nRet;
 	}
 	WriteLog(LOGNAME,logLevelError,_T("DataOpter::writedb --m_pOracleOCI=NULL"));
