@@ -466,7 +466,13 @@ int Protocal::doGpsData( char *buf,GPSGATEDATA gpsData,int &nDataLen,int iTimeCo
 	buf2HexStr_devx(buf,gpsData.nDataLen,strTmp,nLen_StrTmp);
 
 	char pStrLog[1024];
-	sprintf(pStrLog,("%s:W[%d]:valid[%d]:NoLoad[%d]:%s"),gpsInfo.COMMADDR,gpsInfo.bNeedWriteDataBase,gpsInfo.bValid,gpsInfo.Noload,strTmp);
+	sprintf(pStrLog,("%s:W[%d]:valid[%d]:NoLoad[%d]:nwarring[%d]:%s"),
+		gpsInfo.COMMADDR,
+		gpsInfo.bNeedWriteDataBase,
+		gpsInfo.bValid,
+		gpsInfo.Noload,
+		gpsInfo.nWarnFlag,
+		strTmp);
 	::WriteLog(gpsInfo.COMMADDR,logLevelInfo,pStrLog);
 
 	if(gpsInfo.nMsgID== MSG_NULL)	
@@ -483,39 +489,22 @@ int Protocal::doGpsData( char *buf,GPSGATEDATA gpsData,int &nDataLen,int iTimeCo
 			if(nRet<1) 
 			{
 				sprintf(strTmp,"[Protocal]→[DB]-Fail to write DB.ret=%d,commandr=%s",nRet,gpsInfo.COMMADDR);
-				//TODO: NEEDLOG
-				//		m_pGps->wlog(gpsInfo.COMMADDR,strTmp);	
-
 				Write_Log(strTmp);
 				Write_Log(gpsInfo.COMMADDR,strTmp);		
 				buf2HexStr_devx(buf,gpsData.nDataLen,strTmp,nLen_StrTmp);
 				Write_Log(gpsInfo.COMMADDR,strTmp);
 			}
-			//else m_pGps->wlog(gpsInfo.COMMADDR,"[Protocal]→[DB]-success to write DB");
 		}
 
 		int nLen = pCurGPSClass->getResMsg(pResBuf,gpsInfo);
 		if(nLen>0)
-		{
-			//gpsData.nDataLen = nLen;
+		{			
 			int nRet =writeGPSx(gpsData,pResBuf,nLen); 
 			if(nRet<1)
 			{
-				sprintf(strTmp,"ret [Console]→[GPS]%s-失败.%x",gpsData.pDatabuf,nRet);			
-			}
-			else sprintf(strTmp,"ret [Console]→[GPS]-%s",gpsData.pDatabuf);			
-			//TODO: NEEDLOG
-			//		m_pGps->wlog(gpsInfo.COMMADDR,strTmp);
-			//Write_Log(gpsInfo.COMMADDR,strTmp);// 
-// 			buf2HexStr_devx(buf,gpsData.nDataLen,strTmp,nLen_StrTmp);
-// 			Write_Log(gpsInfo.COMMADDR,strTmp);
-
-			//buf2HexStr_devx(pResBuf,nLen,strTmp,nLen_StrTmp);
-			//Write_Log(gpsInfo.COMMADDR,strTmp);
-		}
-		else{
-			sprintf(strTmp,"starGps-当前报文不需要响应--SIM:%s",gpsInfo.COMMADDR);
-			//Write_Log(gpsInfo.COMMADDR,strTmp);
+				sprintf(strTmp,"ret [Console]→[GPS]%s-失败.%x",gpsData.pDatabuf,nRet);	
+				Write_Log(gpsInfo.COMMADDR,strTmp);
+			}		
 		}
 
 	}
