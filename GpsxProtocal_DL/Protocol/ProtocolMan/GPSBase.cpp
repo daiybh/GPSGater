@@ -756,3 +756,31 @@ void GPSClass::Write_Log( const char *pLogContent )
 	::WriteLog(LOG_NAME,logLevelError,pLogContent);
 }
 
+double GPSClass::coverLatitude( TCHAR*pDDMMmmm )
+{
+	int dDDMM = atoi(pDDMMmmm);
+
+	int dDD = (int)dDDMM/100;
+
+	TCHAR *pMMmmm = pDDMMmmm+2;
+
+	double dMMmmm = atof(pMMmmm);
+	double dDDdddd = dDD+dMMmmm/60;
+	sprintf(pDDMMmmm,"%.5f",dDDdddd);
+	return dDDdddd;
+}
+
+double GPSClass::coverLongitude( TCHAR*pDDDMMmmm )
+{
+	int dDDDMM = atoi(pDDDMMmmm);
+	int dDDD = dDDDMM/100;
+
+	TCHAR *pMMmmm = pDDDMMmmm+3;
+	double dMMmmm = atof(pMMmmm);
+	double dDDdddd = dDDD+dMMmmm/60;
+	sprintf(pDDDMMmmm,"%.5f",dDDdddd);
+	return dDDdddd;
+}
+
+
+

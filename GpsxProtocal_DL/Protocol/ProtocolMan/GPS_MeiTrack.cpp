@@ -402,30 +402,6 @@ long GPS_MeiTrack::_handleCmd_overspeed( GPSCommand*pGpsCommand,int nMaxSpeed,in
 	getFullCommandLine(pGpsCommand->strCommandLine,pGpsCommand->commandParameters,"P");	
 	return 1;
 }
-double coverLatitude(TCHAR*pDDMMmmm)
-{
-	int dDDMM = atoi(pDDMMmmm);
-
-	int dDD = (int)dDDMM/100;
-
-	TCHAR *pMMmmm = pDDMMmmm+2;
-	
-	double dMMmmm = atof(pMMmmm);
-	double dDDdddd = dDD+dMMmmm/60;
-	sprintf(pDDMMmmm,"%.5f",dDDdddd);
-	return dDDdddd;
-}
-double coverLongitude(TCHAR*pDDDMMmmm)
-{
-	int dDDDMM = atoi(pDDDMMmmm);
-	int dDDD = dDDDMM/100;
-
-	TCHAR *pMMmmm = pDDDMMmmm+3;
-	double dMMmmm = atof(pMMmmm);
-	double dDDdddd = dDDD+dMMmmm/60;
-	sprintf(pDDDMMmmm,"%.5f",dDDdddd);
-	return dDDdddd;
-}
 #include <math.h>
 #define PI 3.141592653589793
 double rad(double d)

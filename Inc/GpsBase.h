@@ -57,6 +57,9 @@ protected://公共 工具函数
 	void Write_Log(char*pLogName,const char *pLogContent);
 	void Write_Log(const char *pLogContent);
 
+	double coverLatitude(TCHAR*pDDMMmmm);
+	double coverLongitude(TCHAR*pDDDMMmmm);
+
 protected:
 	virtual void getMsgID(char *buf,GPSINFO &gpsInfo)=0;
 	const char * find_Comma(const char *srcStr,int &nLen);

@@ -545,15 +545,106 @@ long GpsJTT808::_handleCmd_overspeed( GPSCommand*pGpsCommand,int nMaxSpeed,int n
 	pGpsCommand->nLenCommandLine = nlen;
 	return nlen;
 }
-
+void DWORDtoBuffer(DWORD dwValue,char *pMsgBody,int &nMsgBodyPos)
+{
+	pMsgBody[nMsgBodyPos++] = dwValue/256/256/256;
+	pMsgBody[nMsgBodyPos++] = dwValue/256/256;
+	pMsgBody[nMsgBodyPos++] = dwValue/256;
+	pMsgBody[nMsgBodyPos++] = dwValue;
+}
+void WORDtoBuffer(WORD dwValue,char *pMsgBody,int &nMsgBodyPos)
+{
+	pMsgBody[nMsgBodyPos++] = dwValue/256;
+	pMsgBody[nMsgBodyPos++] = dwValue;
+}
 long GpsJTT808::_handleCmd_SetArea( GPSCommand*pGpsCommand,TCHAR *pAreaID,TCHAR *palertType,TCHAR *pType,TCHAR *pLeftLat,TCHAR *prightlat,TCHAR *pleftlng,TCHAR *prightlng,TCHAR *pcenterlat,TCHAR *pcenterlng,TCHAR *pRadius )
 {
-	return 0;
+	tagMsgHead msgHead;
+
+	msgHead.msgID=0x8602;
+	msgHead.msgSN =m_MsgSN++;
+	msgHead.msgBodyAttribute.bPaket=0;
+	msgHead.msgBodyAttribute.Rev =0;
+	msgHead.msgBodyAttribute.msgDecodeType=0;
+
+	memcpy(msgHead.sim,pGpsCommand->strSim,strlen(pGpsCommand->strSim));
+
+	char pMsgBody[40];
+	int nMsgBodyPos = 0;
+	int nSetAttrib=0;
+	pMsgBody[nMsgBodyPos++] = nSetAttrib;
+	pMsgBody[nMsgBodyPos++] = 1;//area count
+
+	struct tagRangerectAreaParam 
+	{
+		DWORD dwAreaID;
+		WORD	areaAttrib;
+		DWORD	left_up_Latitude;
+		DWORD	left_up_longtitude;
+		DWORD	right_down_Latitude;
+		DWORD	right_down_longtitude;
+		char	strStartTime[6];
+		char	strEndTime[6];
+		WORD	nMaxSpeed;//km/h
+		BYTE	nContinueTime;//s
+		void toStringBuffer(char*pMsgBody,int &nMsgBodyPos){
+
+			DWORDtoBuffer(this->dwAreaID,pMsgBody,nMsgBodyPos);
+			WORDtoBuffer(this->areaAttrib,pMsgBody,nMsgBodyPos);
+
+			DWORDtoBuffer(this->left_up_Latitude,pMsgBody,nMsgBodyPos);
+			DWORDtoBuffer(this->left_up_longtitude,pMsgBody,nMsgBodyPos);
+			DWORDtoBuffer(this->right_down_Latitude,pMsgBody,nMsgBodyPos);
+			DWORDtoBuffer(this->right_down_longtitude,pMsgBody,nMsgBodyPos);
+
+			if(this->areaAttrib&0x1){
+				memcpy(pMsgBody+nMsgBodyPos,strStartTime,6);
+				nMsgBodyPos+=6;
+				memcpy(pMsgBody+nMsgBodyPos,strEndTime,6);
+				nMsgBodyPos+=6;
+			}
+			if(this->areaAttrib&0x2){
+				pMsgBody[nMsgBodyPos++] = this->nMaxSpeed/256;
+				pMsgBody[nMsgBodyPos++] = this->nMaxSpeed;
+				pMsgBody[nMsgBodyPos++] = this->nContinueTime;
+			}
+
+		}
+	};
+	tagRangerectAreaParam rap;
+	rap.areaAttrib =8;
+	rap.dwAreaID = atoi(pAreaID);
+	rap.left_up_Latitude = coverLatitude(pLeftLat);
+	rap.left_up_longtitude= coverLongitude(pleftlng);
+	rap.right_down_Latitude = coverLatitude(prightlat);
+	rap.right_down_longtitude = coverLongitude(prightlng);
+
+	int nlen = getFullCmdLine(pGpsCommand->strCommandLine,&msgHead,pMsgBody,nMsgBodyPos);
+	pGpsCommand->nLenCommandLine = nlen;
+	return nlen;
 }
 
 long GpsJTT808::_handleCmd_CacelArea( GPSCommand*pGpsCommand,TCHAR *pAreaID )
 {
-	return 0;
+	tagMsgHead msgHead;
+
+	msgHead.msgID=0x8603;
+	msgHead.msgSN =m_MsgSN++;
+	msgHead.msgBodyAttribute.bPaket=0;
+	msgHead.msgBodyAttribute.Rev =0;
+	msgHead.msgBodyAttribute.msgDecodeType=0;
+
+	memcpy(msgHead.sim,pGpsCommand->strSim,strlen(pGpsCommand->strSim));
+
+	char pMsgBody[40];
+	int nMsgBodyPos = 0;
+	int nSetAttrib=0;
+	pMsgBody[nMsgBodyPos++] = 1;
+	DWORDtoBuffer(atoi(pAreaID),pMsgBody,nMsgBodyPos);
+
+	int nlen = getFullCmdLine(pGpsCommand->strCommandLine,&msgHead,pMsgBody,nMsgBodyPos);
+	pGpsCommand->nLenCommandLine = nlen;
+	return nlen;
 }
 
 long GpsJTT808::_handleCmd_SetHeartTime( GPSCommand*pGpsCommand,TCHAR *pInterval )
