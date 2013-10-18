@@ -28,7 +28,7 @@ struct DataInfo
 	DWORD dLastUpdate_LocationTime;
 	__time64_t dLastUpdate_SQLTime;
 	DWORD dwMaxSpeed;
-	char	vehicheID[20]; 
+	char	vehicheID[50]; 
 };
 //map中只保存当前车相同命令的最后一条。
 struct CommandItem{	
@@ -36,7 +36,7 @@ struct CommandItem{
 	int nCmdType;
 	char devID[20];
 	char simID[20];
-	char vehicle_ID[20];
+	char vehicle_ID[50];
 	char cmdID[20];
 	char cmdParam[20];
 };

@@ -285,7 +285,7 @@ int COracleOCI_o::getInfos_Form_VEHICLE()
 	OCIDefine *defhp1,*defhp2,*defhp3,*defhp4,*defhp5;
 	OCIError *errhp;
 
-	char szSim[20],szVehicleID[20],szFlag[20],szTID[20],szUpSpeed[20];
+	char szSim[20],szVehicleID[50],szFlag[20],szTID[50],szUpSpeed[20];
 
 	char szID[20] = "11";
 	OCIBind* bndhp1 = NULL;
