@@ -91,10 +91,10 @@ void WriteLog(char* szModuleName,LONG  lLogLevel,const char *szLog)
 	if(g_pfn !=NULL)
 	{
 		WCHAR szW_ModuleName[50];
-		WCHAR szW_Log[200];
+		WCHAR szW_Log[1024];
 
 		MultiByteToWideChar(CP_ACP,0,szModuleName,-1,szW_ModuleName,50);		
-		MultiByteToWideChar(CP_ACP,0,szLog,-1,szW_Log,200);
+		MultiByteToWideChar(CP_ACP,0,szLog,-1,szW_Log,1024);
 		WriteLog(szW_ModuleName,lLogLevel,szW_Log);
 	}
 }
