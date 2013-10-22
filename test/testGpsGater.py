@@ -14,6 +14,7 @@ class SocketThread(threading.Thread):
 
     def printError(self,errMsg):
         print("Error:",self.port,errMsg)
+        
     def run(self):
         sock2=0
         bConnect=False
@@ -73,7 +74,7 @@ a.start()
 
 port =120
 sendStr ="<directtogps_command><deviceid>015728572436</deviceid><toBin>1</toBin><command>7e8001000501572857243600010001010200bc7e0000</command></directtogps_command>"
-
+sendStr ="<?xml version=\"1.0\" encoding=\"utf-8\"?><setarea><id>43</id><sim>015728572436</sim><deviceid>015728572436</deviceid><type>2</type><leftlng>10242.0825504</leftlng><leftlat>2502.7253643999998</leftlat><rightlng>10242.7108308</rightlng><rightlat>2502.3567718</rightlat><alerttype>1</alerttype><areaid>1</areaid></setarea>"
 #SendSocket(port,sendStr)
 b = SocketThread(port,sendStr)
 b.start()
