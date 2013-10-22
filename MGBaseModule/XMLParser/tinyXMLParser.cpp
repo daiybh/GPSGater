@@ -62,8 +62,9 @@ int CTinyXMLParser::GetNodeText_len(LPCTSTR strNodeName,TCHAR *pDestBuffer,int n
 	try
 	{
 		XMLElement * Rootelement =  m_pXMLDom->RootElement();
+		if(Rootelement==NULL)return 0;
 		XMLElement * pFindElement = Rootelement->FirstChildElement(strNodeName);
-		
+		if(pFindElement==NULL)return 0;
 		const char * pValue = pFindElement->FirstChild()->Value();
 		int nLen = strlen(pValue);
 		if(pDestBuffer==NULL){
@@ -108,6 +109,7 @@ BOOL CTinyXMLParser::GetRoot(LPCTSTR &strName, LPCTSTR strPara)
 	try
 	{
 		XMLElement * Rootelement =  m_pXMLDom->RootElement();
+		if(Rootelement==NULL)return 0;
 		strName = Rootelement->Name();
 		/*
 		MSXML2::IXMLDOMElementPtr pRoot = m_pXMLDom->documentElement;
@@ -129,6 +131,7 @@ BOOL CTinyXMLParser::GetRoot(LPCTSTR &strName, LPCTSTR strPara)
 int CTinyXMLParser::GetRootName(TCHAR*pRootName)
 {	
 	XMLElement * Rootelement =  m_pXMLDom->RootElement();
+	if(Rootelement==NULL)return 0;
 	_tcscpy(pRootName , Rootelement->Name());
 	return strlen(pRootName);
 	/*
