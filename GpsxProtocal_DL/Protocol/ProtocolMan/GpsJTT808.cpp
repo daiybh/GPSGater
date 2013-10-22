@@ -618,6 +618,7 @@ long GpsJTT808::_handleCmd_SetArea( GPSCommand*pGpsCommand,TCHAR *pAreaID,TCHAR 
 	rap.left_up_longtitude= coverLongitude(pleftlng);
 	rap.right_down_Latitude = coverLatitude(prightlat);
 	rap.right_down_longtitude = coverLongitude(prightlng);
+	rap.toStringBuffer(pMsgBody,nMsgBodyPos);
 
 	int nlen = getFullCmdLine(pGpsCommand->strCommandLine,&msgHead,pMsgBody,nMsgBodyPos);
 	pGpsCommand->nLenCommandLine = nlen;

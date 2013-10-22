@@ -466,8 +466,7 @@ int Protocal::doGpsData( char *buf,GPSGATEDATA gpsData,int &nDataLen,int iTimeCo
 	buf2HexStr_devx(buf,gpsData.nDataLen,strTmp,nLen_StrTmp);
 
 	char pStrLog[1024];
-	sprintf(pStrLog,("%s:W[%d]:valid[%d]:NoLoad[%d]:nwarring[%d]:%s"),
-		gpsInfo.COMMADDR,
+	sprintf(pStrLog,("W[%d]:valid[%d]:NoLoad[%d]:nwarring[%d]:%s"),		
 		gpsInfo.bNeedWriteDataBase,
 		gpsInfo.bValid,
 		gpsInfo.Noload,
@@ -499,12 +498,17 @@ int Protocal::doGpsData( char *buf,GPSGATEDATA gpsData,int &nDataLen,int iTimeCo
 		int nLen = pCurGPSClass->getResMsg(pResBuf,gpsInfo);
 		if(nLen>0)
 		{			
+
 			int nRet =writeGPSx(gpsData,pResBuf,nLen); 
 			if(nRet<1)
 			{
 				sprintf(strTmp,"ret [Console]→[GPS]%s-失败.%x",gpsData.pDatabuf,nRet);	
 				Write_Log(gpsInfo.COMMADDR,strTmp);
 			}		
+
+			buf2HexStr_devx(pResBuf,nLen,strTmp,nLen_StrTmp);
+			sprintf(pStrLog,"writeGPSx-nRet:%d-->[%s]",nRet,strTmp);
+			::WriteLog(gpsInfo.COMMADDR,logLevelInfo,pStrLog);
 		}
 
 	}
@@ -525,7 +529,7 @@ long Protocal::Process_Command(GPSCommand *gpsCommand,char *pGpsDataBuf)
 	int nRet = getCmd(gpsCommand);
 	if(nRet < 1)
 		return nRet;
-	char strTmp[100];
+	char strTmp[1024];
 	do{
 		if(gpsCommand->commandType < cmdType_ToService)
 		{
@@ -534,18 +538,24 @@ long Protocal::Process_Command(GPSCommand *gpsCommand,char *pGpsDataBuf)
 			//通过deviceID 获取 设备当前的 socket信息
 			int iCnt = 0;
 			BOOL bGetIPPort  = false;
+			char *pCommand = NULL;
 			while(!bGetIPPort)
 			{
 				bGetIPPort = getIPPort(gpsCommand->strDevID,gpsData);
 				if(iCnt++ > 5)
 					break;
 			}
+			if(bGetIPPort)pCommand = gpsCommand->strDevID;
 			iCnt=0;
-			while(!bGetIPPort)
+			if(!bGetIPPort)
 			{
-				bGetIPPort = getIPPort(gpsCommand->strSim,gpsData);
-				if(iCnt++ > 5)
-					break;
+				while(!bGetIPPort)
+				{
+					bGetIPPort = getIPPort(gpsCommand->strSim,gpsData);
+					if(iCnt++ > 5)
+						break;
+				}
+				if(bGetIPPort)pCommand = gpsCommand->strSim;
 			}
 			if(!bGetIPPort)
 			{
@@ -581,8 +591,10 @@ long Protocal::Process_Command(GPSCommand *gpsCommand,char *pGpsDataBuf)
 				{
 					sprintf(strTmp,"[Console]→[GPS]%s-失败",gpsData.pDatabuf);			
 				}
-				else 
-					sprintf(strTmp,"[Console]→[GPS]-%s",gpsData.pDatabuf);
+				char pCharTemp[1024]				;
+				buf2HexStr_devx(gpsData.pDatabuf,gpsData.nDataLen,pCharTemp,1024);
+				sprintf(strTmp,"Command->writeGPSx-nRet:%d-->[%s]",nRet,pCharTemp);
+				::WriteLog(pCommand,logLevelInfo,strTmp);
 			}
 		}
 		// 由于需要把收到的命令 放到数据库中，所以还是要调用WriteCommand

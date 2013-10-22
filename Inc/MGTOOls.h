@@ -50,7 +50,7 @@ inline void GetPrivateProfileStringA_(
 							   __in_opt LPCSTR lpFileName)
 {
 	int nRet = ::GetPrivateProfileString(lpAppName,lpKeyName,lpDefault,lpReturnedString,nSize,lpFileName);
-	printf("GetPricStr:%d-lpAppName:%s,lpKeyName:%s-Default:%s--return:%s---last:%d\r\n",nRet,lpAppName,lpKeyName,lpDefault,lpReturnedString,GetLastError());
+	//printf("GetPricStr:%d-lpAppName:%s,lpKeyName:%s-Default:%s--return:%s---last:%d\r\n",nRet,lpAppName,lpKeyName,lpDefault,lpReturnedString,GetLastError());
 	if(GetLastError()!=0)
 		WritePrivateProfileString(lpAppName,lpKeyName,lpDefault,lpFileName);
 
@@ -67,7 +67,7 @@ inline int GetPrivateProfileIntA_(
 
 	int nRet =::GetPrivateProfileInt(lpAppName,lpKeyName,nDefault,lpFileName);
 
-	printf("GetPricInt:%d-lpAppName:%s,lpKeyName:%s--last:%d\r\n",nRet,lpAppName,lpKeyName,GetLastError());
+	//printf("GetPricInt:%d-lpAppName:%s,lpKeyName:%s--last:%d\r\n",nRet,lpAppName,lpKeyName,GetLastError());
 	if(GetLastError()!=0)
 		WritePrivateProfileString(lpAppName,lpKeyName,sValue,lpFileName);
 	return nRet;
