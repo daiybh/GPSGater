@@ -274,7 +274,8 @@ long GPSClass::handleCmd_SetArea(GPSCommand *pGpsCommand)
 	_handleCmd_SetArea(pGpsCommand,pAreaID,alertType,pType,pLeftLat,prightlat,pleftlng,prightlng,pcenterlat,pcenterlng,pRadius);
 	
 
-	pGpsCommand->nLenCommandLine = strlen(pGpsCommand->strCommandLine);
+	if(pGpsCommand->nLenCommandLine==0)
+		pGpsCommand->nLenCommandLine = strlen(pGpsCommand->strCommandLine);
 	pGpsCommand->strCommandLine[pGpsCommand->nLenCommandLine+1]='\0';
 
 	memset(pTemp,0,10);
