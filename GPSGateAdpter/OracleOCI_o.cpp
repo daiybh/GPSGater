@@ -774,7 +774,7 @@ int COracleOCI_o::WriteData( const GPSINFO *pGpsInfo )
 			{
 				break;
 			}
-			if(cmdItem->nCmdType == cmdType_ToGPS)
+			if(cmdItem->nCmdType == cmtType_ToGPS_Setarea)
 			//执行删除数据的操作
 			{
 				sprintf(m_strDeleteDataSQL_ForCmd,"delete REGIONL_SET WHERE id=%d",cmdItem->recordID);
@@ -1150,7 +1150,7 @@ int COracleOCI_o::writeCommand( GPSCommand * pGpsCommand )
 			pGpsCommand->pVoid = NULL;			
 		}
 	}
-	else if(cmdType == cmdType_ToGPS)//暂时作为越界命令来使用
+	else if(cmdType == cmtType_ToGPS_Setarea)//暂时作为越界命令来使用
 	{
 		//DataInfo *pDI = GetVehicleInfo(pGpsCommand->strDevID);
 		//if(pDI==NULL)return -1;

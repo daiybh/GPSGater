@@ -506,9 +506,9 @@ int Protocal::doGpsData( char *buf,GPSGATEDATA gpsData,int &nDataLen,int iTimeCo
 				Write_Log(gpsInfo.COMMADDR,strTmp);
 			}		
 
-			//buf2HexStr_devx(pResBuf,nLen,strTmp,nLen_StrTmp);
-			//sprintf(pStrLog,"writeGPSx-nRet:%d-->[%s]",nRet,strTmp);
-			//::WriteLog(gpsInfo.COMMADDR,logLevelInfo,pStrLog);
+			buf2HexStr_devx(pResBuf,nLen,strTmp,nLen_StrTmp);
+			sprintf(pStrLog,"writeGPSx-nRet:%d-->[%s]",nRet,strTmp);
+			::WriteLog(gpsInfo.COMMADDR,logLevelInfo,pStrLog);
 		}
 
 	}

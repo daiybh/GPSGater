@@ -195,8 +195,8 @@ long GPSClass::handleCmd_SetArea(GPSCommand *pGpsCommand)
 	-------------
 	left(min,min)
 	*/
-	strcpy(pGpsCommand->strSim,m_pXmlParser->GetNodeText("sim",pTemp));
-	strcpy(pGpsCommand->strDevID,m_pXmlParser->GetNodeText(_T("deviceid"),pTemp));
+	//strcpy(pGpsCommand->strSim,m_pXmlParser->GetNodeText("sim",pTemp));
+	//strcpy(pGpsCommand->strDevID,m_pXmlParser->GetNodeText(_T("deviceid"),pTemp));
 	char alertType[5] ;
 	strcpy(alertType,m_pXmlParser->GetNodeText(_T("alerttype"),pTemp));
 	//默认为 出区域报警
@@ -281,6 +281,7 @@ long GPSClass::handleCmd_SetArea(GPSCommand *pGpsCommand)
 	memset(pTemp,0,10);
 	int nRecordID = atoi(m_pXmlParser->GetNodeText(_T("id"),pTemp));	
 	pGpsCommand->pVoid = (int*)nRecordID;
+	pGpsCommand->commandType=(CmdType)cmtType_ToGPS_Setarea;
 	return pGpsCommand->nLenCommandLine;
 }
 long GPSClass::handleCmd_CacelArea(GPSCommand*pGpsCommand)
@@ -516,8 +517,8 @@ long GPSClass::handleCmd_SetGPRSParam( GPSCommand*pGpsCommand )
 	TCHAR pTemp[100];
 	pGpsCommand->commandType = CmdType(cmdType_ToGPS+1);
 
-	strcpy(pGpsCommand->strSim,m_pXmlParser->GetNodeText("sim",pTemp));
-	strcpy(pGpsCommand->strDevID,m_pXmlParser->GetNodeText(_T("deviceid"),pTemp));
+	//strcpy(pGpsCommand->strSim,m_pXmlParser->GetNodeText("sim",pTemp));
+	//strcpy(pGpsCommand->strDevID,m_pXmlParser->GetNodeText(_T("deviceid"),pTemp));
 	//sprintf(pGpsCommand->strCMDID,"s21_0_%s",m_pXmlParser->GetNodeText(_T("areaid"),pTemp));
 	TCHAR *pLinkMod = pTemp;
 	int nLen = m_pXmlParser->GetNodeText_len(_T("linkmod"),pLinkMod);
@@ -539,7 +540,8 @@ long GPSClass::handleCmd_SetGPRSParam( GPSCommand*pGpsCommand )
 
 	_handleCmd_SetGPRSParam(pGpsCommand,pLinkMod,pIP,pPort,pAPN,pAPN_UserName,pAPN_PassWord);
 
-	pGpsCommand->nLenCommandLine = strlen(pGpsCommand->strCommandLine);
+	if(pGpsCommand->nLenCommandLine==0)
+		pGpsCommand->nLenCommandLine = strlen(pGpsCommand->strCommandLine);
 	pGpsCommand->strCommandLine[pGpsCommand->nLenCommandLine+1] = '\0';	
 	int nRecordID = atoi(m_pXmlParser->GetNodeText(_T("id"),pTemp));
 	pGpsCommand->pVoid = (int*)nRecordID;		

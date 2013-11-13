@@ -61,6 +61,15 @@ private:
 		tagMsgHead(){
 			ZeroMemory(this,sizeof(tagMsgHead));
 		}
+		tagMsgHead(int msgid,int sn,char * pStrSim){
+			tagMsgHead();
+			this->msgID=msgid;
+			this->msgSN =sn++;
+			this->msgBodyAttribute.bPaket=0;
+			this->msgBodyAttribute.Rev =0;
+			this->msgBodyAttribute.msgDecodeType=0;
+			memcpy(this->sim,pStrSim,strlen(pStrSim));
+		};
 	};
 	int diposMsgBody(tagMsgHead msgHead,const BYTE *pMsgBody,GPSINFO *gpsInfo);
 	int getFullCmdLine(char *pDestBuf,tagMsgHead *pMsgHead,char *pstrMsgBody,int nMsgBodyLen);

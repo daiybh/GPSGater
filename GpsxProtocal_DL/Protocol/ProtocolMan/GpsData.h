@@ -109,7 +109,7 @@ typedef struct tagGPSInfo
 	char	PreFix[N_LEN];//The UDP head
 	char	SEQ[N_LEN];//Serial number
 	char	COMMADDR[N_LEN];//SIM NO.
-	char	CMDID[N_LEN];//command ID
+	char	CMDID[N_LEN];//command ID 命令字符串，用于终端回应后 在 oracleoci端匹配来删除数据记录用
 	char	CMDARGUS[N_LEN];//commad parameters
 	char	Time[N_LEN];// 报文产生时间20130926220506
 	char	UTC[N_LEN];//
@@ -145,6 +145,7 @@ typedef struct tagGPSInfo
 //*XX,YYYYYYYYYY,CMD,HHMMSS,PARA1,PARA2,…#
 enum CmdType{
 	cmdType_ToGPS=1,
+	cmtType_ToGPS_Setarea=cmdType_ToGPS,
 	cmdType_ToService=0xFF,
 	cmdType_ToService_OverSpeed=cmdType_ToService+1
 };

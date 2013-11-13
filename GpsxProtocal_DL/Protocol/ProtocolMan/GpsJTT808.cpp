@@ -336,6 +336,27 @@ int GpsJTT808::diposMsgBody( tagMsgHead msgHead,const BYTE *pMsgBody,GPSINFO *gp
 	int nRet = 0;
 	gpsInfo->nMsgID=MSG_NULL;
 	switch(msgHead.msgID){
+		case 0x0001:
+			//7e0001 0005 014787831213 0659 00018602009d7e
+			{
+				gpsInfo->nMsgID = MSG_TERMINALFEEDBACK;
+
+				int answerSn = ((pMsgBody[0]&0xff)*256 )|(pMsgBody[1]&0xff);
+				int answerID = ((pMsgBody[2]&0xff)*256 )|(pMsgBody[3]&0xff);
+				int answer = pMsgBody[4];
+
+				sprintf(gpsInfo->CMDID,"sn%d_ID%d",answerSn,answerID);
+
+			}
+			break;
+		case 0x0002:
+			{
+				gpsInfo->nMsgID =MSG_LOGIN;
+				sprintf(gpsInfo->PreFix,"%d",0x8001);
+				gpsInfo->bNeedWriteDataBase=false;
+				nRet = 1;
+			}
+			break;
 		case 0x0102:
 			//0 鉴权码 string 终端重连后上传鉴权码
 			//需要平台应答
@@ -375,14 +396,17 @@ int GpsJTT808::diposMsgBody( tagMsgHead msgHead,const BYTE *pMsgBody,GPSINFO *gp
 					void copy2GpsInfo(GPSINFO *gpsinfo)
 					{
 						gpsinfo->nWarnFlag=0;
-						if(alarmFlag&0x02==0x02)
+						if((alarmFlag&0x02)==0x02)
 							gpsinfo->nWarnFlag|=WAR_OVERSPEED;
 
 						/*if(alarmFlag&0x1000==0x1000)
 							gpsinfo->nWarnFlag |=WAR_OVERSPEED;
-						/**/
-						if(alarmFlag&0x100000 == 0x100000)
-							gpsinfo->nWarnFlag |=WAR_INZONE;
+						/**/          
+						if((alarmFlag&0x100000) == 0x100000)
+							gpsinfo->nWarnFlag |=WAR_INZONE;	
+
+						if((alarmFlag&0x100000) == 0x100000)
+							gpsinfo->nWarnFlag |=WAR_INZONE;	
 
 //						gpsinfo->nWarnFlag = alarmFlag;
 						sprintf(gpsinfo->Latitude,"%f",(double(latitude))/1000000);
@@ -398,6 +422,7 @@ int GpsJTT808::diposMsgBody( tagMsgHead msgHead,const BYTE *pMsgBody,GPSINFO *gp
 				LocInfo locationInfo;
 				//locationInfo.alarmFlag = ((pMsgBody[0])*4096)|((pMsgBody[1])*256)|((pMsgBody[2])*16)|((pMsgBody[3]));
 				locationInfo.alarmFlag = getDword(pMsgBody);
+				
 
 				
 				//locationInfo.status = ((pMsgBody[4])*4096)|((pMsgBody[5])*256)|((pMsgBody[6])*16)|((pMsgBody[7]));
@@ -448,9 +473,6 @@ int GpsJTT808::diposMsgBody( tagMsgHead msgHead,const BYTE *pMsgBody,GPSINFO *gp
 				nRet = 1;
 			}
 			break;
-		case 0x002:
-			nRet = 1;
-			break;
 		default:
 			{
 				
@@ -480,7 +502,7 @@ BOOL GpsJTT808::isThisProtocol( char *buf ,GPSINFO *pGpsInfo)
 	if(buf[0]==0x7E)
 	{
 		pGpsInfo->nDevID +=GPS_JTT808;
-		pGpsInfo->nDevID +=GPSID_TID;
+		pGpsInfo->nDevID +=GPSID_SIM;
 		return TRUE;
 	}
 	return FALSE;
@@ -488,16 +510,8 @@ BOOL GpsJTT808::isThisProtocol( char *buf ,GPSINFO *pGpsInfo)
 
 long GpsJTT808::_handleCmd_overspeed( GPSCommand*pGpsCommand,int nMaxSpeed,int nMinSpeed,int nContinue,int nValid/*=1*/ )
 {
-	tagMsgHead msgHead;
-
-	msgHead.msgID=0x8103;
-	msgHead.msgSN =m_MsgSN++;
-	msgHead.msgBodyAttribute.bPaket=0;
-	msgHead.msgBodyAttribute.Rev =0;
-	msgHead.msgBodyAttribute.msgDecodeType=0;
-	
-	memcpy(msgHead.sim,pGpsCommand->strSim,strlen(pGpsCommand->strSim));
-
+	pGpsCommand->commandType = cmdType_ToGPS;
+	tagMsgHead msgHead(0x8103,m_MsgSN++,pGpsCommand->strSim);
 	char pMsgBody[40];
 	int nMsgBodyPos = 0;
 	int nParamsCount=2;
@@ -559,17 +573,8 @@ void WORDtoBuffer(WORD dwValue,char *pMsgBody,int &nMsgBodyPos)
 }
 long GpsJTT808::_handleCmd_SetArea( GPSCommand*pGpsCommand,TCHAR *pAreaID,TCHAR *palertType,TCHAR *pType,TCHAR *pLeftLat,TCHAR *prightlat,TCHAR *pleftlng,TCHAR *prightlng,TCHAR *pcenterlat,TCHAR *pcenterlng,TCHAR *pRadius )
 {
-	tagMsgHead msgHead;
-
-	msgHead.msgID=0x8602;
-	msgHead.msgSN =m_MsgSN++;
-	msgHead.msgBodyAttribute.bPaket=0;
-	msgHead.msgBodyAttribute.Rev =0;
-	msgHead.msgBodyAttribute.msgDecodeType=0;
-
-	memcpy(msgHead.sim,pGpsCommand->strSim,strlen(pGpsCommand->strSim));
-
-	char pMsgBody[40];
+	tagMsgHead msgHead(0x8602,m_MsgSN++,pGpsCommand->strSim);
+	char pMsgBody[100];
 	int nMsgBodyPos = 0;
 	int nSetAttrib=0;
 	pMsgBody[nMsgBodyPos++] = nSetAttrib;
@@ -612,16 +617,35 @@ long GpsJTT808::_handleCmd_SetArea( GPSCommand*pGpsCommand,TCHAR *pAreaID,TCHAR 
 		}
 	};
 	tagRangerectAreaParam rap;
-	rap.areaAttrib =8;
-	rap.dwAreaID = atoi(pAreaID);
-	rap.left_up_Latitude = coverLatitude(pLeftLat);
-	rap.left_up_longtitude= coverLongitude(pleftlng);
-	rap.right_down_Latitude = coverLatitude(prightlat);
-	rap.right_down_longtitude = coverLongitude(prightlng);
+	rap.areaAttrib =0x08;
+	static int AreaID=0;
+	rap.dwAreaID = 1;//AreaID++;//atoi(pAreaID);
+	//*
+	rap.left_up_Latitude = coverLatitude(pLeftLat)*1000000;
+	rap.left_up_longtitude= coverLongitude(pleftlng)*1000000;
+	rap.right_down_Latitude = coverLatitude(prightlat)*1000000;
+	rap.right_down_longtitude = coverLongitude(prightlng)*1000000;
+	
+/*
+	rap.left_up_Latitude = 0x017e2ac5;
+	rap.left_up_longtitude= 0x061f218a;
+	rap.right_down_Latitude = 0x017e222d;
+	rap.right_down_longtitude = 0x061f2a22;
+	
+	/**/
+/*
+	rap.left_up_Latitude = coverLatitude(prightlat)*1000000;
+	rap.left_up_longtitude= coverLongitude(prightlng)*1000000;
+	rap.right_down_Latitude = coverLatitude(pLeftLat)*1000000;
+	rap.right_down_longtitude = coverLongitude(pleftlng)*1000000;
+/**/
 	rap.toStringBuffer(pMsgBody,nMsgBodyPos);
 
 	int nlen = getFullCmdLine(pGpsCommand->strCommandLine,&msgHead,pMsgBody,nMsgBodyPos);
 	pGpsCommand->nLenCommandLine = nlen;
+
+
+//	sprintf(gpsInfo->CMDID,"sn%d_ID%d",answerSn,answerID);
 	return nlen;
 }
 
@@ -667,7 +691,28 @@ long GpsJTT808::_handleCmd_SetTurnReport( GPSCommand*pGpsCommand,TCHAR*pAngle )
 
 long GpsJTT808::_handleCmd_SetGPRSParam( GPSCommand*pGpsCommand,TCHAR*pLinkMod,TCHAR*pIP,TCHAR*pPort,TCHAR*pAPN,TCHAR*pAPN_UserName,TCHAR*pAPN_PassWord )
 {
-
+	tagMsgHead msgHead(0x8103,m_MsgSN++,pGpsCommand->strSim);
+	char pMsgBody[100];
+	int nMsgBodyPos = 0;
+	int nSetAttrib=1;
+	pMsgBody[nMsgBodyPos++] = nSetAttrib;
+	//pMsgBody[nMsgBodyPos++] = 1;//area count
+	struct tagParams{
+		DWORD paramID;
+		BYTE paramLen;
+		char *paramContent;
+		void toStringBuffer(char*pMsgBody,int &nMsgBodyPos){
+			DWORDtoBuffer(this->paramID,pMsgBody,nMsgBodyPos);
+			pMsgBody[nMsgBodyPos++] = this->paramLen;
+			DWORDtoBuffer(0,pMsgBody,nMsgBodyPos);
+		}
+	};
+	tagParams tp;
+	tp.paramID = 0x0050;
+	tp.paramLen = sizeof(DWORD);
+	tp.toStringBuffer(pMsgBody,nMsgBodyPos);
+	int nlen = getFullCmdLine(pGpsCommand->strCommandLine,&msgHead,pMsgBody,nMsgBodyPos);
+	pGpsCommand->nLenCommandLine = nlen;
 	return 1;
 }
 

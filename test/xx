@@ -1,0 +1,31 @@
+leftLa=  0x017e2ac5
+leftlng= 0x061f218a
+rightla= 0x017e222d
+rightlng=0x061f2a22
+
+nmod=1000000.0
+
+def coverDD(dd):
+    d1=int(dd)
+    mm=(dd-d1)*60
+    return d1*100+mm
+
+def pploc(lat,lng,label=""):
+    
+    print(label,lat,lng,"-->",lat/nmod,lng/nmod,coverDD(lat/nmod),coverDD(lng/nmod))
+    
+    #print("{0:2f},{1:2f}],right[{2:2f},{3:2f}]".format(leftLa/nmod,leftlng/nmod,rightla/nmod,rightlng/nmod))
+
+def cover(ddMMmmm):
+    dd=int(ddMMmmm/100)
+    MMmmm = ddMMmmm%100
+    return int((dd+MMmmm/60)*nmod)
+
+pploc(leftLa,leftlng,"left")
+pploc(rightla,rightlng,"right")
+pploc(0x017e27e6,0x061f25e0,"cur")
+
+pploc(cover(2503.081924),cover(10240.8667404))
+pploc(cover(2501.5328518),cover(10243.8330492))
+
+pploc(0x017e2770,0x061f25b1)
