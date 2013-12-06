@@ -42,8 +42,11 @@ void test_getSend2GpsData(GPSClass *gpsCurDevice)
 	GPSCommand pGpsCommand;
 	strcpy(pGpsCommand.strSim,"015196359445");
 	char xml[1024];
-	strcpy(xml,"<set_offoil_offelectricity><deviceid>015196359445</deviceid><bOFF>1</bOFF></set_offoil_offelectricity>");
+	printf("boFF \t 1:off   0:on\n");
+	int x = getchar();
+	sprintf(xml,"<set_offoil_offelectricity><deviceid>015196359445</deviceid><boff>%d</boff></set_offoil_offelectricity>",x);
 
+	printf("%s\n",xml);
 	pGpsCommand.strCommandLine =xml+strlen(xml)+1;
 	gpsCurDevice->getConsole2GPSData(xml,&pGpsCommand);
 	char pDest[1024];

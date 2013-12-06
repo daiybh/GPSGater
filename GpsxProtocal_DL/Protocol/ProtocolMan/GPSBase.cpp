@@ -308,7 +308,7 @@ long GPSClass::handleCmd_Set_oFFOil_offElectricity( GPSCommand*pGpsCommand )
 	pGpsCommand->commandType = CmdType(cmdType_ToGPS+3);
 
 	TCHAR pTemp[100];
-	BOOL bOff = atoi(m_pXmlParser->GetNodeText("bOFF",pTemp));
+	BOOL bOff = atoi(m_pXmlParser->GetNodeText("boff",pTemp));
 	_handleCmd_Set_oFFOil_offElectricity(pGpsCommand,bOff);
 	if(pGpsCommand->nLenCommandLine==0)
 		pGpsCommand->nLenCommandLine = strlen(pGpsCommand->strCommandLine);
