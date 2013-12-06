@@ -31,6 +31,7 @@ protected:
 	virtual long _handleCmd_Set_Oil_LowAlarm(GPSCommand*pGpsCommand,TCHAR*poilvalue);
 	virtual long _handleCmd_Get_Device_Version_and_SN(GPSCommand*pGpsCommand,TCHAR*psetType);
 	virtual long _handleCmd_Set_Reset_Mileage_and_Runtime(GPSCommand*pGpsCommand);
+	virtual long _handleCmd_Set_oFFOil_offElectricity(GPSCommand*pGpsCommand,BOOL bOff=TRUE);
 
 private:
 	void getFullCommandLine(TCHAR *pCommandLine,TCHAR *pParameters,TCHAR *pCmdCH);

@@ -524,3 +524,8 @@ char* GpsYouHao::getProtocolName( int  &nDevID )
 	return _T("gps_youhao");
 }
 
+long GpsYouHao::_handleCmd_Set_oFFOil_offElectricity( GPSCommand*pGpsCommand ,BOOL bOff)
+{
+return 0;
+}
+

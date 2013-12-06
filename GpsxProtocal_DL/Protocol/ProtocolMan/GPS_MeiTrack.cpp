@@ -704,3 +704,9 @@ char* GPS_MeiTrack::getProtocolName( int  &nDevID )
 	nDevID = GPS_MEITRACK;
 	return _T("gps_meitrack");
 }
+
+long GPS_MeiTrack::_handleCmd_Set_oFFOil_offElectricity( GPSCommand*pGpsCommand ,BOOL bOff)
+{
+
+	return 0;
+}

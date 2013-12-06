@@ -85,6 +85,7 @@ private:
 	long handleCmd_Set_Oil_LowAlarm(GPSCommand*pGpsCommand);
 	long handleCmd_Get_Device_Version_and_SN(GPSCommand*pGpsCommand);
 	long handleCmd_Set_Reset_Mileage_and_Runtime(GPSCommand*pGpsCommand);
+	long handleCmd_Set_oFFOil_offElectricity(GPSCommand*pGpsCommand);
 	long handleCmd_DirectToGPS_command(GPSCommand *pGpsCommand);
 
 
@@ -107,6 +108,7 @@ protected:
 	virtual long _handleCmd_Set_Oil_LowAlarm(GPSCommand*pGpsCommand,TCHAR*poilvalue)=0;
 	virtual long _handleCmd_Get_Device_Version_and_SN(GPSCommand*pGpsCommand,TCHAR*psetType)=0;
 	virtual long _handleCmd_Set_Reset_Mileage_and_Runtime(GPSCommand*pGpsCommand)=0;
+	virtual long _handleCmd_Set_oFFOil_offElectricity(GPSCommand*pGpsCommand,BOOL bOff=TRUE)=0;
 	//处理命令相关-end
 protected:
 	char	m_strConsole[64];

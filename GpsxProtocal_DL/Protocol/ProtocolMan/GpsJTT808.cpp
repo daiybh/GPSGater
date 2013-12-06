@@ -672,6 +672,27 @@ long GpsJTT808::_handleCmd_CacelArea( GPSCommand*pGpsCommand,TCHAR *pAreaID )
 	return nlen;
 }
 
+long GpsJTT808::_handleCmd_Set_oFFOil_offElectricity( GPSCommand*pGpsCommand ,BOOL bOff)
+{
+	tagMsgHead msgHead;
+
+	msgHead.msgID=0xFFE4;
+	msgHead.msgSN =m_MsgSN++;
+	msgHead.msgBodyAttribute.bPaket=0;
+	msgHead.msgBodyAttribute.Rev =0;
+	msgHead.msgBodyAttribute.msgDecodeType=0;
+
+	memcpy(msgHead.sim,pGpsCommand->strSim,strlen(pGpsCommand->strSim));
+
+	char pMsgBody[40];
+	int nMsgBodyPos = 0;
+	int nSetAttrib=0;
+	WORDtoBuffer(bOff?0xAA55:0x1111,pMsgBody,nMsgBodyPos);
+	int nlen = getFullCmdLine(pGpsCommand->strCommandLine,&msgHead,pMsgBody,nMsgBodyPos);
+	pGpsCommand->nLenCommandLine = nlen;
+	return 0;
+}
+
 long GpsJTT808::_handleCmd_SetHeartTime( GPSCommand*pGpsCommand,TCHAR *pInterval )
 {
 

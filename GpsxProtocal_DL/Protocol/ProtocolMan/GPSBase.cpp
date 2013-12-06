@@ -301,7 +301,21 @@ long GPSClass::handleCmd_CacelArea(GPSCommand*pGpsCommand)
 	pGpsCommand->pVoid = (int*)nRecordID;		
 	return pGpsCommand->nLenCommandLine;
 }
+long GPSClass::handleCmd_Set_oFFOil_offElectricity( GPSCommand*pGpsCommand )
+{
+	//set_offoil_offelectricity
+	//<set_offoil_offelectricity><deviceid></deviceid><bOFF>1</bOFF></set_offoil_offelectricity>
+	pGpsCommand->commandType = CmdType(cmdType_ToGPS+3);
 
+	TCHAR pTemp[100];
+	BOOL bOff = atoi(m_pXmlParser->GetNodeText("bOFF",pTemp));
+	_handleCmd_Set_oFFOil_offElectricity(pGpsCommand,bOff);
+	if(pGpsCommand->nLenCommandLine==0)
+		pGpsCommand->nLenCommandLine = strlen(pGpsCommand->strCommandLine);
+	pGpsCommand->strCommandLine[pGpsCommand->nLenCommandLine+1]='\0';
+	return pGpsCommand->nLenCommandLine;
+
+}
 long GPSClass::handleCmd_DirectToGPS_command( GPSCommand *pGpsCommand )
 {
 //DirectToGPS_command
@@ -441,6 +455,10 @@ long GPSClass::getConsole2GPSData( const char *fromConsole_srcBuf,GPSCommand *pG
 		else if(strcmp(chXMlValue,"set_reset_mileage_and_runtime")==0)
 		{
 			nRet = handleCmd_Set_Reset_Mileage_and_Runtime(pGpsCommand);
+		}
+		else if(strcmp(chXMlValue,"set_offoil_offelectricity")==0)
+		{
+			nRet = handleCmd_Set_oFFOil_offElectricity(pGpsCommand);
 		}
 		else 
 		{
@@ -784,6 +802,9 @@ double GPSClass::coverLongitude( TCHAR*pDDDMMmmm )
 	sprintf(pDDDMMmmm,"%.5f",dDDdddd);
 	return dDDdddd;
 }
+
+
+
 
 
 

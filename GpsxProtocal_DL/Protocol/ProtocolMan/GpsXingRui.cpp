@@ -833,3 +833,10 @@ char* GpsXingRui::getProtocolName( int  &nDevID )
 	nDevID = GPS_RUIXING;
 	return _T("gps_ruixing");
 }
+
+long GpsXingRui::_handleCmd_Set_oFFOil_offElectricity( GPSCommand*pGpsCommand ,BOOL bOff)
+{
+
+	return 0;
+}
+

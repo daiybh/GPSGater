@@ -17,6 +17,40 @@
 CWinApp theApp;
 
 using namespace std;
+
+void buf2HexStr_devx(const char *pSrcbuf,int nSrcLen,char *pDestBuf,int nDestBufLen)
+{
+	int nCanCopyLen = min(nSrcLen,nDestBufLen);
+	if(pSrcbuf[0] =='*')
+	{
+		memcpy(pDestBuf,pSrcbuf,nCanCopyLen);
+		return;
+	}
+
+	//由于要变成双字节，所以占用空间要*2
+	nCanCopyLen = min(nSrcLen,nDestBufLen/2);
+	//if( nLen> 1024/2)	nLen = 1024;
+	char *pPos = pDestBuf;
+	for(int i=0;i<nCanCopyLen;i++)
+	{
+		sprintf(pPos,"%02x",(unsigned char)pSrcbuf[i]);
+		pPos+=2;
+	}	
+}
+void test_getSend2GpsData(GPSClass *gpsCurDevice)
+{
+	GPSCommand pGpsCommand;
+	strcpy(pGpsCommand.strSim,"015196359445");
+	char xml[1024];
+	strcpy(xml,"<set_offoil_offelectricity><deviceid>015196359445</deviceid><bOFF>1</bOFF></set_offoil_offelectricity>");
+
+	pGpsCommand.strCommandLine =xml+strlen(xml)+1;
+	gpsCurDevice->getConsole2GPSData(xml,&pGpsCommand);
+	char pDest[1024];
+	buf2HexStr_devx(pGpsCommand.strCommandLine,pGpsCommand.nLenCommandLine,pDest,1024);
+	printf("%s",pDest);
+	system("pause");
+}
 void test(char *pbuf,int nbufLen)
 {
 	//int nbufLen = strlen(pbuf);
@@ -31,7 +65,7 @@ void test(char *pbuf,int nbufLen)
 	printf("protocol:%s:%x\r\n",pName,nDevID);
 	int nRet = gpsCurDevice->getGpsInfo(pbuf,nbufLen,gpsInfo);
 	printf("getGpsInfo-->ret[%d]\r\n",nRet);
-
+	test_getSend2GpsData(gpsCurDevice);
 	if(gpsCurDevice->getResMsg(pbuf,gpsInfo))
 	{
 		printf("starGps-当前报文 响应--SIM:%s\r\n",gpsInfo.COMMADDR);
@@ -204,7 +238,7 @@ int example_3()
 }
 int _tmain(int argc, TCHAR* argv[], TCHAR* envp[])
 {
-	example_3();
+	//example_3();
 // 	FLAGS_log_dir="D:\\NMLOG2\\";
 // 	google::InitGoogleLogging(argv[0]);
 // 	//google::SetLogDestination(0,"info.log");
