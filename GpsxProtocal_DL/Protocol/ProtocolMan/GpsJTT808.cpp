@@ -502,7 +502,7 @@ BOOL GpsJTT808::isThisProtocol( char *buf ,GPSINFO *pGpsInfo)
 	if(buf[0]==0x7E)
 	{
 		pGpsInfo->nDevID +=GPS_JTT808;
-		pGpsInfo->nDevID +=GPSID_SIM;
+		pGpsInfo->nDevID +=GPSID_TID;
 		return TRUE;
 	}
 	return FALSE;
