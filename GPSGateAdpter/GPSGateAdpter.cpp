@@ -97,7 +97,7 @@ void CGPSGateAdpterApp::InitAdpter()
 	printf("begin startwork()\r\n");
 	CString sLog;
 
-	sLog.Format(_T("m_pGPS_Socket->StartWork()=%d--%d--%d"),nRet,nRet1,nRet2);
+	sLog.Format(_T("m_pGPS_Socket->StartWork()=%d,m_pDataOpter->StartWork()=%d,m_pGetCommand->StartWork()=%d"),nRet,nRet1,nRet2);
 	WriteLog(LOGNAME,logLevelError,sLog);
 	m_bInitAdpter = TRUE;
 }

@@ -15,6 +15,7 @@ CConnection::CConnection()
 	m_pstrServer[0]='\0';
 	m_pstrUser[0]='\0';
 	m_pstrPasswd[0]='\0';
+	m_bConnected = FALSE;
 }
 
 CConnection::~CConnection()
@@ -48,6 +49,7 @@ int CConnection::connect(char *Server, char *user,char *passwd)
 //    char connect_str[1024] = {0};
     sword status;
 
+	if(m_bConnected)disconnect();
     try
     {
         OCIEnvCreate(&myenvhp, OCI_DEFAULT|OCI_THREADED, (dvoid *)0, 0, 0, 0, (size_t)0, (dvoid **)0);
@@ -112,6 +114,7 @@ int CConnection::connect(char *Server, char *user,char *passwd)
 	strcpy(m_pstrServer,Server);
 	strcpy(m_pstrUser,user);
 	strcpy(m_pstrPasswd,passwd);
+	m_bConnected = TRUE;
     return 1;    
 }
 
@@ -228,6 +231,6 @@ int CConnection::disconnect()
     {
         printf("DBCON_ERROR_DISCONNECTING failed/n");
     }
-    
+    m_bConnected = FALSE;
     return 0;    
 }

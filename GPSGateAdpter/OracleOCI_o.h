@@ -97,6 +97,7 @@ public:
 	int _DoCreateTable(const char*createTableSQL);
 	int Insert_ODBInfo_Data(const GPSINFO *pGpsInfo,CStringA str_CurTime);
 	CConnection conn;
+	BOOL IsConnectDB(){return m_bInitOCI;}
 private:
 
 	char m_strDate[8];

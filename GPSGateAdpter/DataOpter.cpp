@@ -23,6 +23,10 @@ int DataOpter::writedb( const GPSINFO *pGpsInfo )
 		m_timeCount.Reset();
 
 		int nRet = m_pOracleOCI->WriteData(pGpsInfo);
+		if(nRet<1){
+			if(!m_pOracleOCI->IsConnectDB())
+				Init();
+		}
 // 		double dTIme = m_timeCount.GetCountTime(true);
 // 		CString slog;
 // 		slog.Format(_T("writedb const time=%f"),dTIme);

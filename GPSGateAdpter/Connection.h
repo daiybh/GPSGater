@@ -78,6 +78,7 @@ public:
 
 private:
     char errMsg[1024];
+	BOOL m_bConnected;
 };
 
 #endif // !defined(AFX_CONNECTION_H__4381555C_32AD_4F54_9240_9FD5A00EA2AB__INCLUDED_)

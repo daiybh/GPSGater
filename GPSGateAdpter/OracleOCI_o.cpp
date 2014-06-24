@@ -116,6 +116,8 @@ int COracleOCI_o::Init( char *user,char*pwd,char*serverName,BOOL bInsertAsNewVeh
 	//	::MessageBoxA(NULL,s,"cap",MB_YESNO);
 	WriteLog(LOGNAME,logLevelError,CString(s));
 
+	m_dwUpdateVehicleTime = dwUpdateVehicleTime;
+	m_bInsert_As_NewVehicle = bInsertAsNewVehicle;
 	if(nRet <1)
 	{
 		CStringA s;
@@ -125,12 +127,10 @@ int COracleOCI_o::Init( char *user,char*pwd,char*serverName,BOOL bInsertAsNewVeh
 		m_bInitOCI = FALSE;
 	}
 	else{
-//		nRet =CreateTable();
-		getInfos_Form_VEHICLE();
+		//		nRet =CreateTable();
 		m_bInitOCI = TRUE;
+		getInfos_Form_VEHICLE();
 	}
-	m_bInsert_As_NewVehicle = bInsertAsNewVehicle;
-	m_dwUpdateVehicleTime = dwUpdateVehicleTime;
 	return nRet;
 }
 
@@ -221,7 +221,7 @@ JUDGE_RET COracleOCI_o::judge_GPSData( const GPSINFO* pGpsInfo,const INT64 *iSim
 	{
 		return RET_SAME_LOCATION;
 	}
-
+/*
 	//速度是否在合法范围内
 	if(nSpeed > m_dwLimit_MinSpeed )
 	{
@@ -234,6 +234,7 @@ JUDGE_RET COracleOCI_o::judge_GPSData( const GPSINFO* pGpsInfo,const INT64 *iSim
 		}
 		return RET_NORMAL;
 	}
+*/
 	//判断是否要检查飘逸
 	if((pGpsInfo->nDevID &GPS_MEITRACK)==GPS_MEITRACK)
 	{
@@ -276,7 +277,12 @@ int COracleOCI_o::getInfos_Form_VEHICLE()
 {
 	if(!m_bInitOCI) return 0;
 	if(GetTickCount()-m_i64d_GetVehicleInfo < m_dwUpdateVehicleTime)
+	{
+		CString strLog;
+		strLog.Format("getInfos_Form_VEHICLE failed.now[%d]-last[%i64d] <setTime[%d]",GetTickCount(),m_i64d_GetVehicleInfo,m_dwUpdateVehicleTime);
+		OutputDebugString(strLog);
 		return -1;
+	}
 	m_i64d_GetVehicleInfo = GetTickCount();
 	if(m_dwUpdateVehicleTime ==0)
 		m_i64d_GetVehicleInfo = 0x9FFFFFFFFFFFFFFF;
@@ -294,7 +300,7 @@ int COracleOCI_o::getInfos_Form_VEHICLE()
 	OCIBind* bndhp4 = NULL;
 	OCIBind* bndhp5 = NULL;
 
-	
+	OutputDebugString(ins);
 // 	status = OCIStmtPrepare(conn.mystmthp, conn.myerrhp, (const unsigned    char * )ins,
 // 		(ub4) strlen((char *) ins),
 // 		(ub4) OCI_NTV_SYNTAX, (ub4) OCI_DEFAULT);
@@ -308,6 +314,8 @@ int COracleOCI_o::getInfos_Form_VEHICLE()
 		char *ins2 = "SELECT VEHICLE_ID,SIM,FLAG,tid  FROM VEHICLE";
 		if(!prepare_Execute_SQL(conn,ins2))
 		{
+			printf_ErrorLog(_T("OCIStmtExecute"));
+			WriteLog(LOGNAME,logLevelError,CString(ins2));
 			return 0;
 		}
 	}
@@ -408,6 +416,7 @@ int COracleOCI_o::getInfos_Form_VEHICLE()
 int COracleOCI_o::CreateTable(struct tm* pCurGPSTime)
 {
 	if(!m_bInitOCI) return 0;
+
 	char * ins ="CREATE TABLE \"";
 	char * insEnd ="\" (\"SIM\" VARCHAR2(48 BYTE) NULL ,\
 		    		\"TID\" VARCHAR2(48 BYTE) NULL ,\
@@ -433,6 +442,7 @@ int COracleOCI_o::CreateTable(struct tm* pCurGPSTime)
 				   \"TASKID\" NUMBER(11) NULL ,\
 				   \"VAL1\" NUMBER(11) NULL ,\
 				   \"VAL2\" NUMBER(11) NULL ,\
+				   \"MILEAGE\" NUMBER(9,2) NULL,\
 				   \"NOLOAD\" NUMBER(3) NULL)";
 	m_tm_TableNameTime.tm_year = pCurGPSTime->tm_year;
 	m_tm_TableNameTime.tm_mon = pCurGPSTime->tm_mon;
@@ -473,6 +483,7 @@ int COracleOCI_o::_DoCreateTable(const char*createTableSQL)
 }
 void COracleOCI_o::printf_ErrorLog(LPCTSTR lpExtInfo)
 {
+	m_bInitOCI=FALSE;
 	sb4 errcodep;
 	char errbuf[1024]={0};
 
@@ -876,11 +887,11 @@ int COracleOCI_o::WriteData( const GPSINFO *pGpsInfo )
 	{
 
 		CString strLog;
-		strLog.Format(_T("sim=%I64d-bValid=%d--judge_ret=%d--lng=%.4f  lat=%.4f speed=%s gpsTime=%s recTime=%s g_WriteData_Cnt=%I64d--nret=%d"),
+		strLog.Format(_T("sim=%I64d-bValid=%d--judge_ret=%d--lng=%.4f  lat=%.4f speed=%s gpsTime=%s recTime=%s g_WriteData_Cnt=%I64d--nret=%d,m_bInitOCI=%d"),
 			iSim,pGpsInfo->bValid,
 			judge_ret,doubleLongitude,doubleLatitude,
 			CString(pGpsInfo->Speed),
-			CString(pGpsInfo->Time),CString(str_GpsTime),g_WriteData_Cnt,nRet);
+			CString(pGpsInfo->Time),CString(str_GpsTime),g_WriteData_Cnt,nRet,m_bInitOCI);
 		WriteLog(LOGNAME,logLevelInfo,strLog);	
 
 		struct tm pCurGpsTm,t2;
@@ -998,6 +1009,27 @@ int COracleOCI_o::InsertData( const GPSINFO *pGpsInfo ,double doubleLongitude,do
 	BOOL bSim	=	pGpsInfo->nDevID&0x0100;
 	BOOL bTid	=	pGpsInfo->nDevID&0x0200;
 
+
+	sprintf(m_strInsertDataSQL,"Insert into GPS_%s (SIM,tid,GPS_DATE,RECV_DATE,LNG,LAT,VEO,DIRECT,TASKID,ISTATE,NOLOAD,mileage) \
+							   Values('%s','%s',  TO_DATE('%s', 'YYYY-MM-DD HH24:MI:SS'),    \
+							   TO_DATE('%s', 'YYYY-MM-DD HH24:MI:SS'),     \
+							   %.5f, %.5f, %s, %s,%d,%d,%d,%d)",
+							   m_strDate,
+							   bSim?pGpsInfo->COMMADDR:"",
+							   bSim?"":pGpsInfo->COMMADDR,
+							   s_RecvTime,
+							   str_CurTime,
+							   doubleLongitude,doubleLatitude,
+							   pGpsInfo->Speed,
+							   (pGpsInfo->Heading),
+							   hex2dec(pGpsInfo->VERFYCODE),
+							   iState,
+							   pGpsInfo->Noload,
+							   pGpsInfo->st_OBD_Info.Mileage);
+
+	if(DoInsertSQL(m_strInsertDataSQL,FALSE)==1)
+		return 1;
+
 	sprintf(m_strInsertDataSQL,"Insert into GPS_%s (SIM,tid,GPS_DATE,RECV_DATE,LNG,LAT,VEO,DIRECT,TASKID,ISTATE,NOLOAD) \
 							   Values('%s','%s',  TO_DATE('%s', 'YYYY-MM-DD HH24:MI:SS'),    \
 							   TO_DATE('%s', 'YYYY-MM-DD HH24:MI:SS'),     \
@@ -1011,9 +1043,8 @@ int COracleOCI_o::InsertData( const GPSINFO *pGpsInfo ,double doubleLongitude,do
 							  pGpsInfo->Speed,
 							  (pGpsInfo->Heading),
 							  hex2dec(pGpsInfo->VERFYCODE),iState,pGpsInfo->Noload);
-	
-	if(DoInsertSQL(m_strInsertDataSQL,FALSE)==1)
-		return 1;
+
+	if(DoInsertSQL(m_strInsertDataSQL,FALSE)==1)return 1;
 
 	sprintf(m_strInsertDataSQL,"Insert into GPS_%s (SIM,tid,GPS_DATE,RECV_DATE,LNG,LAT,VEO,DIRECT,TASKID,ISTATE) \
 							   Values('%s','%s',  TO_DATE('%s', 'YYYY-MM-DD HH24:MI:SS'),    \
@@ -1027,8 +1058,8 @@ int COracleOCI_o::InsertData( const GPSINFO *pGpsInfo ,double doubleLongitude,do
 							   doubleLongitude,doubleLatitude,
 							   pGpsInfo->Speed,
 							   (pGpsInfo->Heading),
-							   hex2dec(pGpsInfo->VERFYCODE),iState);
-
+							   hex2dec(pGpsInfo->VERFYCODE),
+							   iState);
 	return DoInsertSQL(m_strInsertDataSQL);
 }
 int COracleOCI_o::DoInsertSQL(char *pInsertDataSQL,BOOL bShowErrorInfo/*=TRUE*/)
